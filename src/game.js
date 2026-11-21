@@ -24,8 +24,8 @@ import Peer from 'peerjs';
   render();save();if(!fromNetwork)toast(a.type==='advance'?'Месяц продвинут':'Действие выполнено');
  }
  function bindConn(conn,isIncoming){
-  conn.on('open',()=>{if(isIncoming){connections.push(conn);send(conn,{type:'welcome',state:serialize(),room:roomCode,hostName:state.hostName||'Хост'});netStatus('Игрок подключился');renderPeers();}else{hostConnection=conn;send(conn,{type:'join',name:$('playerName')?.value||'Игрок'});netStatus('Связь с хостом установлена');}});
-  conn.on('data',msg=>{if(!msg||typeof msg!=='object')return;if(isHost&&msg.type==='action'){applyAction(msg.action,true);broadcastState()}else if(!isHost&&(msg.type==='welcome'||msg.type==='state')){restore(msg.state);if(msg.room)roomCode=msg.room;netStatus('В комнате '+roomCode+' · синхронизация активна');renderPeers();}});
+  conn.on('open',()=>{if(isIncoming){connections.push(conn);state.players.push({name:'Подключается…'});send(conn,{type:'welcome',state:serialize(),room:roomCode,hostName:$('playerName')?.value||'Хост'});netStatus('Игрок подключился');renderPeers();}else{hostConnection=conn;send(conn,{type:'join',name:$('playerName')?.value||'Игрок'});netStatus('Связь с хостом установлена');}});
+  conn.on('data',msg=>{if(!msg||typeof msg!=='object')return;if(isHost&&msg.type==='join'){const p=state.players.find(p=>p.name==='Подключается…');if(p)p.name=String(msg.name||'Игрок').slice(0,32);renderPeers();connections.forEach(c=>send(c,{type:'roster',players:state.players}));}else if(isHost&&msg.type==='action'){applyAction(msg.action,true);broadcastState()}else if(!isHost&&(msg.type==='welcome'||msg.type==='state')){restore(msg.state);if(msg.room)roomCode=msg.room;netStatus('В комнате '+roomCode+' · синхронизация активна');renderPeers();}else if(!isHost&&msg.type==='roster'){state.players=msg.players||[];renderPeers();}});
   conn.on('close',()=>{if(isIncoming){connections=connections.filter(c=>c!==conn);renderPeers();netStatus('Игрок покинул комнату')}else{hostConnection=null;netStatus('Соединение с хостом потеряно')}});
   conn.on('error',err=>netStatus('Ошибка соединения: '+(err?.type||'unknown')));
  }
