@@ -6,6 +6,7 @@
   "scripts": {
     "start": "electron .",
     "check": "node --check main.js && node --check preload.js && node --input-type=module --check < src/city3d.js",
+    "build:web": "vite build --outDir dist-web",
     "pack": "electron-builder --dir",
     "dist:win": "electron-builder --win portable"
   },
@@ -14,7 +15,8 @@
   },
   "devDependencies": {
     "electron": "^34.2.0",
-    "electron-builder": "^25.1.8"
+    "electron-builder": "^25.1.8",
+    "vite": "^6.1.0"
   },
   "build": {
     "appId": "com.republic.strategy",
