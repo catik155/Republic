@@ -121,21 +121,6 @@ function fitCanvas(){const r=canvas.getBoundingClientRect();renderer.setSize(r.w
 window.addEventListener('resize',fitCanvas);
 const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const elapsed=clock.getElapsedTime();movePedestrians(elapsed);controls.update();renderer.render(scene,camera)}animate();
 function toast(msg){const el=document.querySelector('#toast');el.textContent=msg;el.style.display='block';clearTimeout(el._timer);el._timer=setTimeout(()=>el.style.display='none',2100)}
-const menu=document.querySelector('#start');
-document.querySelector('#startGame').onclick=()=>{
- const min=+document.querySelector('#minPlayers').value,max=+document.querySelector('#maxPlayers').value;
- const parties=+document.querySelector('#parties').value,ai=+document.querySelector('#ai').value,year=+document.querySelector('#year').value;
- if(min<2||max>20||min>max){toast('Количество игроков: от 2 до 20, минимум не больше максимума.');return}
- if(parties<2||parties>20||ai<0||ai>18||ai>parties-1){toast('Проверь число партий и ИИ: ИИ не может быть больше числа партий минус одна.');return}
- if(year<1900||year>2100){toast('Стартовый год должен быть от 1900 до 2100.');return}
- if(document.querySelector('#mode').selectedIndex===1){toast('Онлайн-мультиплеер пока не реализован. Выбери одиночную игру.');return}
- const countryName=document.querySelector('#country').value.trim()||'Республика';
- document.querySelector('#countryName').textContent=countryName;
- document.querySelector('#chronicle').textContent=countryName+' · '+year+' год · '+parties+' партий · '+ai+' ИИ · '+document.querySelector('#difficulty').value+' сложность';
- menu.classList.add('hidden');toast('Кампания создана. Добро пожаловать!');
-};
-document.querySelector('#openMenu').onclick=()=>menu.classList.remove('hidden');
+// Menu creation/opening is handled in index.html independently of WebGL.
 document.querySelector('#campaign').onclick=()=>toast('Кампания: игровая механика в разработке');
 document.querySelector('#law').onclick=()=>toast('Законы: игровой модуль будет подключён позже');
-// Decorative static thumbnail for the menu.
-const pc=document.querySelector('#preview');if(pc){const pr=pc.getBoundingClientRect();pc.width=Math.max(1,pr.width*devicePixelRatio);pc.height=Math.max(1,pr.height*devicePixelRatio);const pctx=pc.getContext('2d');pctx.scale(devicePixelRatio,devicePixelRatio);pctx.fillStyle='#0a1119';pctx.fillRect(0,0,pr.width,pr.height);pctx.fillStyle='#20372e';pctx.beginPath();pctx.moveTo(pr.width*.12,pr.height*.18);pctx.lineTo(pr.width*.30,pr.height*.10);pctx.lineTo(pr.width*.78,pr.height*.13);pctx.lineTo(pr.width*.90,pr.height*.31);pctx.lineTo(pr.width*.86,pr.height*.78);pctx.lineTo(pr.width*.70,pr.height*.91);pctx.lineTo(pr.width*.28,pr.height*.89);pctx.lineTo(pr.width*.11,pr.height*.74);pctx.closePath();pctx.fill();for(let r=0;r<5;r++){pctx.strokeStyle='#344250';pctx.lineWidth=5;pctx.beginPath();pctx.moveTo(pr.width*.13,pr.height*(.22+r*.13));pctx.lineTo(pr.width*.87,pr.height*(.22+r*.13));pctx.stroke()}for(let b=0;b<24;b++){let x=pr.width*(.18+(b%6)*.12),y=pr.height*(.23+Math.floor(b/6)*.15);pctx.fillStyle=['#4a5968','#68798a','#384856'][b%3];pctx.fillRect(x,y,pr.width*.035,pr.height*.07)}}
