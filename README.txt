@@ -19,3 +19,11 @@ npm run start
 Windows: npm run dist:win
 
 This should resolve the startup deadlock/blank preview symptom. Still must be confirmed by testing the Windows EXE on a real machine.
+
+
+Alpha 0.19.0 simulation additions:
+- Advance calendar month-by-month (year changes after December).
+- Campaign button cycles through a simplified party list and changes support.
+- Law proposal prompt and prototype vote tally against a 226/450 threshold.
+- Top header metrics (year, stability, budget, population) now display dynamic prototype values.
+- Simulation remains a prototype and uses placeholder/random monthly values; online multiplayer is not yet active.
