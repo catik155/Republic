@@ -8,7 +8,7 @@
   if(!Number.isInteger(min)||!Number.isInteger(max)||min<2||max>20||min>max){toast('Проверь количество игроков (2–20).');return}
   if(!Number.isInteger(parties)||parties<2||parties>20||!Number.isInteger(ai)||ai<0||ai>18||ai>parties-1){toast('Проверь партии и количество ИИ. ИИ не может превышать партии минус одна.');return}
   if(!Number.isInteger(year)||year<1900||year>2100){toast('Стартовый год должен быть от 1900 до 2100.');return}
-  if(document.getElementById('mode').selectedIndex===1){toast('Онлайн-режим пока не реализован. Выбери одиночную игру.');return}
+  if(document.getElementById('mode').selectedIndex===1){toast('Создай игру, затем используй блок «Сетевая игра» справа для комнаты.')}
   const name=document.getElementById('country').value.trim()||'Республика';
   document.getElementById('countryName').textContent=name;
   document.getElementById('chronicle').textContent=name+' · '+year+' год · '+parties+' партий · '+ai+' ИИ · '+document.getElementById('difficulty').value+' сложность';
