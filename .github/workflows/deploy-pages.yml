@@ -1,4 +1,5 @@
 name: Republic Web — GitHub Pages
+# Automatic deployment of the static browser build to Pages
 
 on:
   push:
