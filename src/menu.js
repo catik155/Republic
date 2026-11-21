@@ -12,6 +12,7 @@
   const name=document.getElementById('country').value.trim()||'Республика';
   document.getElementById('countryName').textContent=name;
   document.getElementById('chronicle').textContent=name+' · '+year+' год · '+parties+' партий · '+ai+' ИИ · '+document.getElementById('difficulty').value+' сложность';
+  window.dispatchEvent(new CustomEvent('republic:start',{detail:{name,year,parties,ai,difficulty:document.getElementById('difficulty').value}}));
   menu.classList.add('hidden');toast('Государство создано. Добро пожаловать!');
  });
  document.getElementById('openMenu').addEventListener('click',()=>menu.classList.remove('hidden'));
