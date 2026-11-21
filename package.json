@@ -1,0 +1,38 @@
+{
+  "name": "republic-strategy",
+  "version": "0.14.0",
+  "description": "Republic - dark political city strategy prototype",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check main.js && node --check preload.js && node --input-type=module --check < src/city3d.js",
+    "pack": "electron-builder --dir",
+    "dist:win": "electron-builder --win portable"
+  },
+  "dependencies": {
+    "three": "^0.171.0"
+  },
+  "devDependencies": {
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.republic.strategy",
+    "productName": "Republic",
+    "asar": true,
+    "files": [
+      "index.html",
+      "main.js",
+      "preload.js",
+      "src/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "artifactName": "Republic-${version}-Windows.exe"
+    }
+  }
+}
