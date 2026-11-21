@@ -1,6 +1,6 @@
 {
   "name": "republic-strategy",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "Republic - dark political city strategy prototype",
   "main": "main.js",
   "scripts": {
@@ -11,7 +11,8 @@
     "dist:win": "npm run build:web && electron-builder --win portable"
   },
   "dependencies": {
-    "three": "^0.171.0"
+    "three": "^0.171.0",
+    "peerjs": "^1.5.5"
   },
   "devDependencies": {
     "electron": "^34.2.0",
