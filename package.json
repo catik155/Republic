@@ -1,6 +1,6 @@
 {
   "name": "republic-strategy",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Republic - dark political city strategy prototype",
   "main": "main.js",
   "scripts": {
