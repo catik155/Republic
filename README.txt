@@ -1,4 +1,4 @@
-РЕСПУБЛИКА — Alpha 0.18.0
+РЕСПУБЛИКА — Alpha 0.20.0
 
 Startup fix for reported issue where EXE stayed on new-game menu and the preview was blank.
 
@@ -27,3 +27,12 @@ Alpha 0.19.0 simulation additions:
 - Law proposal prompt and prototype vote tally against a 226/450 threshold.
 - Top header metrics (year, stability, budget, population) now display dynamic prototype values.
 - Simulation remains a prototype and uses placeholder/random monthly values; online multiplayer is not yet active.
+
+
+Alpha 0.20.0 — Network MVP:
+- PeerJS added for direct WebRTC peer connections using a public PeerJS broker and STUN.
+- Create room button generates a six-digit room code; players can join using that code.
+- Host is authoritative for turn advance, campaign actions, and law prototype results; clients send actions to host and receive updated state.
+- Online selection no longer blocks campaign creation; lobby controls are available in the right panel after entering the game.
+- This is an early peer-to-peer test: it depends on network access to the PeerJS broker/STUN, has no guaranteed TURN relay for restrictive NAT/firewalls, and lacks lobby player limits/party assignment/full save migration. Test with two devices/browsers before treating multiplayer as reliable.
+- Local save key changed to republic-save-v020.
