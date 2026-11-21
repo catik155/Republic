@@ -122,5 +122,4 @@ window.addEventListener('resize',fitCanvas);
 const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const elapsed=clock.getElapsedTime();movePedestrians(elapsed);controls.update();renderer.render(scene,camera)}animate();
 function toast(msg){const el=document.querySelector('#toast');el.textContent=msg;el.style.display='block';clearTimeout(el._timer);el._timer=setTimeout(()=>el.style.display='none',2100)}
 // Menu creation/opening is handled in index.html independently of WebGL.
-document.querySelector('#campaign').onclick=()=>toast('Кампания: игровая механика в разработке');
-document.querySelector('#law').onclick=()=>toast('Законы: игровой модуль будет подключён позже');
+// Campaign, law proposals and calendar advancement are implemented in src/game.js.
