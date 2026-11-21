@@ -6,9 +6,9 @@
   "scripts": {
     "start": "electron .",
     "check": "node --check main.js && node --check preload.js && node --input-type=module --check < src/city3d.js",
-    "build:web": "vite build --outDir dist-web",
+    "build:web": "vite build --outDir dist-web --base=./",
     "pack": "electron-builder --dir",
-    "dist:win": "electron-builder --win portable"
+    "dist:win": "npm run build:web && electron-builder --win portable"
   },
   "dependencies": {
     "three": "^0.171.0"
@@ -23,11 +23,9 @@
     "productName": "Republic",
     "asar": true,
     "files": [
-      "index.html",
+      "dist-web/**/*",
       "main.js",
       "preload.js",
-      "src/**/*",
-      "node_modules/**/*",
       "package.json"
     ],
     "win": {
