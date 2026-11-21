@@ -36,3 +36,6 @@ Alpha 0.20.0 — Network MVP:
 - Online selection no longer blocks campaign creation; lobby controls are available in the right panel after entering the game.
 - This is an early peer-to-peer test: it depends on network access to the PeerJS broker/STUN, has no guaranteed TURN relay for restrictive NAT/firewalls, and lacks lobby player limits/party assignment/full save migration. Test with two devices/browsers before treating multiplayer as reliable.
 - Local save key changed to republic-save-v020.
+
+
+Network improvements in latest commits: lobby now displays named player list and host enforces configured maximum player count when accepting peers. Roster entries are tracked per PeerJS connection and removed when a peer disconnects. Political prototype now adjusts support over time, reallocates campaign support across parties, and uses weighted simulated votes instead of guaranteed law passage. These systems remain untested with two real devices; confirm GitHub Actions artifacts before download.
