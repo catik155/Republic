@@ -2,13 +2,16 @@
  const menu=document.getElementById('start');
  const toastEl=document.getElementById('toast');
  function toast(message){if(!toastEl)return;toastEl.textContent=message;toastEl.style.display='block';toastEl._timer&&clearTimeout(toastEl._timer);toastEl._timer=setTimeout(()=>toastEl.style.display='none',2500)}
+ function showStartError(message){const el=document.getElementById('startError');if(el){el.textContent=message;el.style.display='block';}else toast(message)}
+ function clearStartError(){const el=document.getElementById('startError');if(el){el.textContent='';el.style.display='none';}}
  document.getElementById('startGame').addEventListener('click',()=>{
   const min=Number(document.getElementById('minPlayers').value),max=Number(document.getElementById('maxPlayers').value);
   const parties=Number(document.getElementById('parties').value),ai=Number(document.getElementById('ai').value),year=Number(document.getElementById('year').value);
-  if(!Number.isInteger(min)||!Number.isInteger(max)||min<2||max>20||min>max){toast('Проверь количество игроков (2–20).');return}
-  if(!Number.isInteger(parties)||parties<2||parties>20||!Number.isInteger(ai)||ai<0||ai>18||ai>parties-1){toast('Проверь партии и количество ИИ. ИИ не может превышать партии минус одна.');return}
-  if(!Number.isInteger(year)||year<1900||year>2100){toast('Стартовый год должен быть от 1900 до 2100.');return}
+  if(!Number.isInteger(min)||!Number.isInteger(max)||min<2||max>20||min>max){showStartError('Проверь количество игроков (2–20).');return}
+  if(!Number.isInteger(parties)||parties<2||parties>20||!Number.isInteger(ai)||ai<0||ai>18||ai>parties-1){showStartError('Проверь партии и количество ИИ. ИИ не может превышать партии минус одна.');return}
+  if(!Number.isInteger(year)||year<1900||year>2100){showStartError('Стартовый год должен быть от 1900 до 2100.');return}
   if(document.getElementById('mode').selectedIndex===1){toast('Создай игру, затем используй блок «Сетевая игра» справа для комнаты.')}
+  clearStartError();
   const name=document.getElementById('country').value.trim()||'Республика';
   document.getElementById('countryName').textContent=name;
   document.getElementById('chronicle').textContent=name+' · '+year+' год · '+parties+' партий · '+ai+' ИИ · '+document.getElementById('difficulty').value+' сложность';
