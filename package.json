@@ -1,11 +1,11 @@
 {
   "name": "republic-strategy",
-  "version": "0.17.0",
+  "version": "0.18.0",
   "description": "Republic - dark political city strategy prototype",
   "main": "main.js",
   "scripts": {
     "start": "npm run build:web && electron .",
-    "check": "node --check main.js && node --check preload.js && node --input-type=module --check < src/city3d.js",
+    "check": "node --check main.js && node --check preload.js && node --check src/menu.js && node --input-type=module --check < src/city3d.js",
     "build:web": "vite build --outDir dist-web --base=./",
     "pack": "electron-builder --dir",
     "dist:win": "npm run build:web && electron-builder --win portable"
