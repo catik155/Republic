@@ -102,7 +102,18 @@ window.addEventListener('resize',fitCanvas);
 function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
 function toast(msg){const el=document.querySelector('#toast');el.textContent=msg;el.style.display='block';clearTimeout(el._timer);el._timer=setTimeout(()=>el.style.display='none',2100)}
 const menu=document.querySelector('#start');
-document.querySelector('#startGame').onclick=()=>{const min=+document.querySelector('#minPlayers').value,max=+document.querySelector('#maxPlayers').value;if(min<2||max>20||min>max){toast('Укажи корректное число игроков (2–20).');return}document.querySelector('#countryName').textContent=document.querySelector('#country').value.trim()||'Республика';menu.classList.add('hidden');toast('Кампания создана. Добро пожаловать!')};
+document.querySelector('#startGame').onclick=()=>{
+ const min=+document.querySelector('#minPlayers').value,max=+document.querySelector('#maxPlayers').value;
+ const parties=+document.querySelector('#parties').value,ai=+document.querySelector('#ai').value,year=+document.querySelector('#year').value;
+ if(min<2||max>20||min>max){toast('Количество игроков: от 2 до 20, минимум не больше максимума.');return}
+ if(parties<2||parties>20||ai<0||ai>18||ai>parties-1){toast('Проверь число партий и ИИ: ИИ не может быть больше числа партий минус одна.');return}
+ if(year<1900||year>2100){toast('Стартовый год должен быть от 1900 до 2100.');return}
+ if(document.querySelector('#mode').selectedIndex===1){toast('Онлайн-мультиплеер пока не реализован. Выбери одиночную игру.');return}
+ const countryName=document.querySelector('#country').value.trim()||'Республика';
+ document.querySelector('#countryName').textContent=countryName;
+ document.querySelector('#chronicle').textContent=countryName+' · '+year+' год · '+parties+' партий · '+ai+' ИИ · '+document.querySelector('#difficulty').value+' сложность';
+ menu.classList.add('hidden');toast('Кампания создана. Добро пожаловать!');
+};
 document.querySelector('#openMenu').onclick=()=>menu.classList.remove('hidden');
 document.querySelector('#campaign').onclick=()=>toast('Кампания: игровая механика в разработке');
 document.querySelector('#law').onclick=()=>toast('Законы: игровой модуль будет подключён позже');
