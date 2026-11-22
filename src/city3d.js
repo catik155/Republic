@@ -94,7 +94,7 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
   const x=bx+dx,z=bz+dz;if(Math.abs(x)>41||Math.abs(z)>43)return;
   let floors=1+((idx*3+k*5)%6);if(district.type==='business')floors+=3;if(district.type==='industrial')floors=1+((idx+k)%3);
   const w=2.4+(idx%3)*.25,h=2.2+(k%2)*.3;
-  if(nearRoad(x,z,Math.max(w,h)/2)||partyHeadquarters.some(hq=>Math.abs(x-hq.x)<4.5&&Math.abs(z-hq.z)<4.2))return;
+  if((Math.abs(x)<7&&Math.abs(z)<7)||nearRoad(x,z,Math.max(w,h)/2)||partyHeadquarters.some(hq=>Math.abs(x-hq.x)<4.5&&Math.abs(z-hq.z)<4.2))return;
   const color=district.type==='business'?'#566777':district.type==='industrial'?'#4b5b61':['#485563','#3f4c59','#53616e'][(idx+k)%3];
   const geom=new THREE.BoxGeometry(w,floors*1.25,h),mat=new THREE.MeshStandardMaterial({color,roughness:.84});
   const mesh=new THREE.Mesh(geom,mat);mesh.position.set(x,floors*.625+.12,z);mesh.castShadow=true;mesh.receiveShadow=true;city.add(mesh);
