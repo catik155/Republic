@@ -17,6 +17,7 @@ This document tracks the game direction requested by the player across earlier d
 - [ ] Fix house entrance alignment/door visibility and verify movement visually.
 - [x] Shortest-path routing on the street graph with cached distance maps; still requires visual verification and pedestrian avoidance refinements.
 - [ ] Expand destinations and routines (shops, government, party offices, benches, work, errands); park leisure stops with a short idle pause are implemented as a basic prototype.
+- [x] Add fixed park benches and small trees to the three static park spaces.
 - [ ] Expand city streets, coherent block geometry, more buildings, distinct neighborhood landmarks and visual polish.
 - [ ] Make citizen circles represent residents consistently, with grouping/interaction and readable activity state.
 
