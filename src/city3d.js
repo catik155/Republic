@@ -114,17 +114,22 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
   else if(variant===2){const g=new THREE.Group();const ridge=new THREE.Mesh(new THREE.BoxGeometry(w+.18,.18,.18),roofMat);ridge.position.y=.45;g.add(ridge);const slope=new THREE.Mesh(new THREE.BoxGeometry(w+.22,.12,h*.72),roofMat);slope.rotation.x=.42;slope.position.set(0,.25,-h*.18);g.add(slope);const slope2=slope.clone();slope2.rotation.x=-.42;slope2.position.set(0,.25,h*.18);g.add(slope2);roof=g;}
   else roof=new THREE.Mesh(new THREE.BoxGeometry(w+.18,.14,h+.18),roofMat);
   roof.position.set(x,floors*1.25+.2,z);roof.castShadow=true;city.add(roof);
-  // Facade orientation and window arrangement vary by deterministic house style.
+  // Locate nearest street and orient the front facade directly toward it.
+  const streetCandidates=[-30,-10,10,30].map(coord=>({xDist:Math.abs(x-coord),zDist:Math.abs(z-coord),xRoad:coord,zRoad:coord}));
+  const nearestStreet=streetCandidates.reduce((best,v)=>v.xDist+v.zDist<best.xDist+best.zDist?v:best);
+  const frontAxis=nearestStreet.xDist<nearestStreet.zDist?'x':'z';
+  const frontSign=frontAxis==='x'?(nearestStreet.xRoad<x?-1:1):(nearestStreet.zRoad<z?-1:1);
   const facadeMat=new THREE.MeshStandardMaterial({color:['#92a9ba','#d1b78d','#9bb8a7','#b4a2c7'][variant],emissive:'#26394a',emissiveIntensity:.22,roughness:.45});
-  const windowCount=Math.max(1,Math.floor(w/.7));
-  for(let floor=1;floor<floors;floor++)for(let wi=0;wi<windowCount;wi++){
-   const win=new THREE.Mesh(new THREE.BoxGeometry(.42,.32,.045),facadeMat);
-   const front=variant%2===0?-1:1,side=variant<2?-1:1,wx=x+(wi-(windowCount-1)/2)*.68;
-   if((idx+k+floor+wi)%2===0){win.position.set(wx,floor*1.22,z+front*(h/2+.026));if(front>0)win.rotation.y=Math.PI;}
-   else{win.position.set(x+side*(w/2+.026),floor*1.22,z+(wi-(windowCount-1)/2)*.6);win.rotation.y=side<0?Math.PI/2:-Math.PI/2;}
+  const windowsPerFloor=Math.max(2,Math.floor(Math.max(w,h)/.65));
+  for(let floor=1;floor<floors;floor++)for(let wi=0;wi<windowsPerFloor;wi++){
+   const win=new THREE.Mesh(new THREE.BoxGeometry(.42,.32,.045),facadeMat),t=(wi-(windowsPerFloor-1)/2)*.62;
+   if(frontAxis==='x'){win.position.set(x+frontSign*(w/2+.026),floor*1.22,z+t);win.rotation.y=frontSign>0?-Math.PI/2:Math.PI/2;}
+   else{win.position.set(x+t,floor*1.22,z+frontSign*(h/2+.026));win.rotation.y=frontSign>0?Math.PI:0;}
    city.add(win);
+   if(variant===3&&wi%2===0){const sideWin=win.clone();if(frontAxis==='x'){sideWin.position.set(x-frontSign*(w/2+.026),floor*1.22,z+t);sideWin.rotation.y=-frontSign*Math.PI/2;}else{sideWin.position.set(x+t,floor*1.22,z-frontSign*(h/2+.026));sideWin.rotation.y=frontSign>0?0:Math.PI;}city.add(sideWin);}
   }
-  const nearestStreet=[-30,-10,10,30].reduce((best,coord)=>{const candidate=[Math.abs(x-coord),Math.abs(z-coord)];return candidate[0]+candidate[1]<best.dist?{dist:candidate[0]+candidate[1],dx:candidate[0],dz:candidate[1],sx:coord,sz:coord}:best},{dist:Infinity,dx:Infinity,dz:Infinity,sx:0,sz:0});const side=nearestStreet.dx<nearestStreet.dz?'x': 'z';const sign=side==='x'?(nearestStreet.sx<x?-1:1):(nearestStreet.sz<z?-1:1);const entryX=x+(side==='x'?sign*(w/2+.55):0),entryZ=z+(side==='z'?sign*(h/2+.55):0);const door=new THREE.Mesh(new THREE.BoxGeometry(.55,.9,.08),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(entryX,.5,entryZ);if(side==='x')door.rotation.y=Math.PI/2;city.add(door);bldgs.push({mesh,district,floors,kind:district.type,x,z,w,h,entryX,entryZ,variant});
+  const side=frontAxis,sign=frontSign;
+  const entryX=x+(side==='x'?sign*(w/2+.55):0),entryZ=z+(side==='z'?sign*(h/2+.55):0);const door=new THREE.Mesh(new THREE.BoxGeometry(.55,.9,.08),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(entryX,.5,entryZ);if(side==='x')door.rotation.y=Math.PI/2;city.add(door);bldgs.push({mesh,district,floors,kind:district.type,x,z,w,h,entryX,entryZ,variant});
  });
 });
 // Fine city detailing is static and deterministic: windows, roof equipment, crossings, and street lighting.
