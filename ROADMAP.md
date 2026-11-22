@@ -1,0 +1,60 @@
+# Republic — Development Roadmap
+
+This document tracks the game direction requested by the player across earlier development chats. Keep it updated as work lands.
+
+## Game pillars
+- [ ] Turn the prototype into a cohesive, playable political/city simulation (not a static dashboard).
+- [ ] The simulation advances automatically; player actions can also advance time.
+- [ ] The city is built once per session and persists as the world, not regenerated every month.
+- [ ] Browser HTML game remains the primary easy-to-play version; no dedicated server required for local play.
+
+## City and residents
+- [x] Dark 3D city, district polygons, connected streets, government landmark, party headquarters, parks.
+- [x] Densify building blocks; extend city floor/camera bounds.
+- [x] Residents have goal-directed street movement.
+- [x] Residential destinations; approach house entrances, fade as they enter, remain indoors, return later.
+- [x] Pair encounters pause residents and show a conversation bubble.
+- [ ] Fix house entrance alignment/door visibility and verify movement visually.
+- [ ] Add more reliable pathfinding, avoid backtracking/traffic-like bunching and walking through buildings.
+- [ ] Add destinations and activities: parks, plazas, shops, government, party offices, benches; each resident has a routine.
+- [ ] Expand city streets, coherent block geometry, more buildings, distinct neighborhood landmarks and visual polish.
+- [ ] Make citizen circles represent residents consistently, with grouping/interaction and readable activity state.
+
+## Political simulation
+- [x] Multiple parties, support, ideology and colors; AI opponents act independently.
+- [x] Campaign action choices: rally, media campaign, resident outreach.
+- [x] Laws with party ideology weighted votes.
+- [x] Stability, unrest, inflation, unemployment, budget, population, monthly income/expenses.
+- [x] Crisis events and protests, with choices and consequences.
+- [x] Election results and 450-seat parliament diagram.
+- [x] Coalition offer after elections; accept, refuse and manually negotiate, or minority government.
+- [x] Scheduled four-year elections added; verify end-of-year event handling.
+- [ ] Improve coalition bargaining: cabinet/ministerial portfolios, policy promises, party acceptance, confidence votes.
+- [ ] Make laws materially affect economy, population, parties, districts, and future elections.
+- [ ] Add party leaders, personalities, priorities, campaign AI and event-driven rival actions.
+- [ ] Improve election campaigns, debates, scandals, endorsements, polling and regional vote.
+- [ ] Protests, strikes, riots, other parties' reactions and government/opposition actions need more distinct outcomes.
+
+## UI and playability
+- [x] Dark political-strategy interface, map layers, inspector, chronicle, tabs and dialogs.
+- [ ] Make mobile layout usable (current side panels are hidden at small widths; replace with accessible collapsible panels).
+- [ ] Add proper map overlays/legend, informative district inspection and non-placeholder district stats.
+- [ ] Build readable election, government, law, economy and party screens with visual data.
+- [ ] Add tooltips, help/tutorial, pause/speed controls, autosave feedback and settings.
+- [ ] Add citizen activity feed and city events visible on map.
+
+## Multiplayer
+- [x] PeerJS room code, host-authoritative actions, player roster and maximum player limit.
+- [ ] Verify real two-device/browser connections; reliability currently depends on broker/STUN and lacks guaranteed relay.
+- [ ] Party assignment, turn flow, reconnect handling, state validation and save compatibility.
+
+## Release quality / checks
+- [ ] Run CI syntax check and web build on latest commit; keep failures visible and fix them.
+- [ ] Browser visual pass on desktop and mobile (not yet available through this workflow).
+- [ ] Confirm EXE startup and map on an actual Windows machine; do not claim it is verified until tested.
+- [ ] Keep the public web link updated and report build status honestly.
+
+## Reference inspirations
+- Resident behavior: state machines with walking, indoor, conversation and activity states; destinations and visible consequences.
+- Political gameplay: elections, campaigning, legislation, negotiations, opposition and consequences.
+- Keep the rules deterministic/transparent where possible; random events should be understandable and actionable.
