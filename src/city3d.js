@@ -85,34 +85,10 @@ const parkMat=new THREE.MeshStandardMaterial({color:'#233d32',roughness:1});
 const parkShapes=[[[-39,-33],[-34,-35],[-32,-30],[-35,-25],[-40,-26]],[[-4,-35],[2,-35],[5,-32],[1,-28],[-4,-30]],[[16,29],[20,27],[23,31],[21,36],[17,35]]];
 parkShapes.forEach(points=>{const g=new THREE.Shape();points.forEach(([x,z],i)=>i?g.lineTo(x,-z):g.moveTo(x,-z));g.closePath();const geom=new THREE.ShapeGeometry(g);geom.rotateX(-Math.PI/2);const m=new THREE.Mesh(geom,parkMat);m.position.y=.14;city.add(m)});
 function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,zi]=pts[i],[xj,zj]=pts[j];if(((zi>z)!=(zj>z))&&(x<(xj-xi)*(z-zi)/(zj-zi)+xi))inside=!inside}return inside}
-// Pedestrians: simple low-poly silhouettes walking along dedicated sidewalks, animated on fixed paths.
-const people=new THREE.Group();scene.add(people);
-const pedestrianPalette=[0x4a91ff,0xd35a66,0xd9b65c,0xa681df,0x86a0b9];
-const pedestrianRecords=[];
-const bodyGeo=new THREE.CapsuleGeometry(.12,.32,3,5),headGeo=new THREE.SphereGeometry(.095,6,5),legGeo=new THREE.CapsuleGeometry(.045,.18,2,4);
-for(let k=0;k<70;k++){
- const lane=k%4, phase=((k*37)%97)/97, route=lane%2===0?78:80, speed=.45+(k%5)*.12;
- const group=new THREE.Group(), color=pedestrianPalette[k%pedestrianPalette.length];
- const body=new THREE.Mesh(bodyGeo,new THREE.MeshStandardMaterial({color,roughness:.85}));
- body.position.y=.34;body.castShadow=true;group.add(body);
- const head=new THREE.Mesh(headGeo,new THREE.MeshStandardMaterial({color:0xb5b9bd,roughness:.9}));head.position.y=.61;group.add(head);
- const legs=[];
- for(let side=0;side<2;side++){const leg=new THREE.Mesh(legGeo,new THREE.MeshStandardMaterial({color:0x303943,roughness:.9}));leg.position.set(side===0?-.065:.065,.12,0);leg.castShadow=true;group.add(leg);legs.push(leg)}
- people.add(group);pedestrianRecords.push({group,lane,phase,speed,route,legs});
-}
-function movePedestrians(time){
- pedestrianRecords.forEach(p=>{
-  const t=(p.phase+time*p.speed*.018)%1;
-  const stride=Math.sin(time*p.speed*5.2+p.phase*6.28)*.42;
-  p.legs[0].rotation.z=stride;p.legs[1].rotation.z=-stride;
-  if(p.lane===0){p.group.position.set(-39+78*t,.02,-20.3);p.group.rotation.y=0}
-  else if(p.lane===1){p.group.position.set(-39+78*t,.02,2.2);p.group.rotation.y=0}
-  else if(p.lane===2){p.group.position.set(-29.2,.02,-40+80*t);p.group.rotation.y=Math.PI/2}
-  else{p.group.position.set(12.8,.02,-40+80*t);p.group.rotation.y=Math.PI/2}
- });
-}
-
-
+// Residents are intentionally simple moving circles (dots), with no limb animation.
+const people=new THREE.Group();scene.add(people);const pedestrianPalette=['#4a91ff','#d35a66','#d9b65c','#a681df','#86a0b9'];const pedestrianRecords=[];const dotGeo=new THREE.SphereGeometry(.22,10,8);
+for(let k=0;k<70;k++){const lane=k%4,phase=((k*37)%97)/97,speed=.45+(k%5)*.12,dot=new THREE.Mesh(dotGeo,new THREE.MeshStandardMaterial({color:pedestrianPalette[k%5],roughness:.8}));dot.position.y=.24;people.add(dot);pedestrianRecords.push({dot,lane,phase,speed})}
+function movePedestrians(time){pedestrianRecords.forEach(p=>{const t=(p.phase+time*p.speed*.018)%1;if(p.lane===0)p.dot.position.set(-39+78*t,.24,-20.3);else if(p.lane===1)p.dot.position.set(-39+78*t,.24,2.2);else if(p.lane===2)p.dot.position.set(-29.2,.24,-40+80*t);else p.dot.position.set(12.8,.24,-40+80*t)})}
 // Lightweight city traffic looping along two avenue lanes.
 const traffic=new THREE.Group();city.add(traffic);
 const trafficRecords=[];
