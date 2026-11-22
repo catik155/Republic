@@ -103,6 +103,43 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
   const nearestStreet=[-30,-10,10,30].reduce((best,coord)=>{const candidate=[Math.abs(x-coord),Math.abs(z-coord)];return candidate[0]+candidate[1]<best.dist?{dist:candidate[0]+candidate[1],dx:candidate[0],dz:candidate[1],sx:coord,sz:coord}:best},{dist:Infinity,dx:Infinity,dz:Infinity,sx:0,sz:0});const side=nearestStreet.dx<nearestStreet.dz?'x': 'z';const sign=side==='x'?(nearestStreet.sx<x?-1:1):(nearestStreet.sz<z?-1:1);const entryX=x+(side==='x'?sign*(w/2+.55):0),entryZ=z+(side==='z'?sign*(h/2+.55):0);const door=new THREE.Mesh(new THREE.BoxGeometry(.55,.9,.08),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(entryX,.5,entryZ);if(side==='x')door.rotation.y=Math.PI/2;city.add(door);bldgs.push({mesh,district,floors,kind:district.type,x,z,w,h,entryX,entryZ});
  });
 });
+// Fine city detailing is static and deterministic: windows, roof equipment, crossings, and street lighting.
+// Instanced facade windows add visual density without hundreds of separate draw calls.
+const facadeWindowMat=new THREE.MeshStandardMaterial({color:'#93adbf',emissive:'#293f52',emissiveIntensity:.24,roughness:.38});
+const facadeWindowGeo=new THREE.BoxGeometry(.34,.42,.07);
+const facadeSideGeo=new THREE.BoxGeometry(.07,.42,.34);
+const facadeWindowFront=new THREE.InstancedMesh(facadeWindowGeo,facadeWindowMat,1200);
+const facadeWindowSide=new THREE.InstancedMesh(facadeSideGeo,facadeWindowMat,1200);
+const windowDummy=new THREE.Object3D();let frontWindowCount=0,sideWindowCount=0;
+bldgs.forEach((b,bi)=>{
+ const floorCount=Math.max(1,b.floors-1),cols=Math.max(1,Math.floor(b.w/.65));
+ for(let f=1;f<=floorCount;f++){
+  const y=f*1.22;
+  for(let c=0;c<cols;c++){
+   const x=b.x+(c-(cols-1)/2)*.62;
+   if(frontWindowCount<facadeWindowFront.count){windowDummy.position.set(x,y,b.z-b.h/2-.045);windowDummy.rotation.set(0,0,0);windowDummy.updateMatrix();facadeWindowFront.setMatrixAt(frontWindowCount++,windowDummy.matrix);}
+   if(sideWindowCount<facadeWindowSide.count){const z=b.z+(c-(cols-1)/2)*.62;windowDummy.position.set(b.x+b.w/2+.045,y,z);windowDummy.updateMatrix();facadeWindowSide.setMatrixAt(sideWindowCount++,windowDummy.matrix);}
+  }
+ }
+ // Deterministic rooftop HVAC/vent details on selected buildings.
+ if(bi%4===0){const roofY=b.floors*1.25+.32;const ventMat=new THREE.MeshStandardMaterial({color:'#293744',roughness:.88});const vent=new THREE.Mesh(new THREE.BoxGeometry(.65,.45,.55),ventMat);vent.position.set(b.x+b.w*.22,roofY,b.z+b.h*.12);vent.castShadow=true;city.add(vent);const ventCap=new THREE.Mesh(new THREE.BoxGeometry(.75,.08,.65),new THREE.MeshStandardMaterial({color:'#5c6a75',roughness:.8}));ventCap.position.set(vent.position.x,roofY+.25,vent.position.z);city.add(ventCap);}
+});
+facadeWindowFront.count=frontWindowCount;facadeWindowSide.count=sideWindowCount;facadeWindowFront.instanceMatrix.needsUpdate=true;facadeWindowSide.instanceMatrix.needsUpdate=true;city.add(facadeWindowFront,facadeWindowSide);
+// A few raised crosswalk markings at the central civic intersections.
+const markingMat=new THREE.MeshStandardMaterial({color:'#a8b4bd',roughness:1});
+[-10,10].forEach(x=>[-10,10].forEach(z=>{
+ for(let stripe=0;stripe<5;stripe++){
+  const mark=new THREE.Mesh(new THREE.BoxGeometry(.42,.035,2.6),markingMat);mark.position.set(x-3.2+stripe*1.35,.16,z-5.3);city.add(mark);
+ }
+ for(let stripe=0;stripe<5;stripe++){
+  const mark=new THREE.Mesh(new THREE.BoxGeometry(2.6,.035,.42),markingMat);mark.position.set(x-5.3,.16,z-3.2+stripe*1.35);city.add(mark);
+ }
+}));
+// Warm street lamps live along sidewalks rather than in the carriageway.
+const lampMetal=new THREE.MeshStandardMaterial({color:'#344553',roughness:.7}),lampGlow=new THREE.MeshStandardMaterial({color:'#e4c98b',emissive:'#e4c98b',emissiveIntensity:.75});
+const lampPoleGeo=new THREE.CylinderGeometry(.07,.11,3.4,6),lampHeadGeo=new THREE.BoxGeometry(.45,.16,.32);
+const lampLocations=[];[-30,-10,10,30].forEach(x=>[-30,-10,10,30].forEach(z=>{lampLocations.push([x-3.1,z-3.1],[x+3.1,z+3.1])}));
+lampLocations.slice(0,28).forEach(([x,z])=>{const pole=new THREE.Mesh(lampPoleGeo,lampMetal);pole.position.set(x,1.7,z);pole.castShadow=true;city.add(pole);const head=new THREE.Mesh(lampHeadGeo,lampGlow);head.position.set(x,3.45,z);city.add(head);});
 // Political party headquarters: distinct landmarks placed in city blocks, not on the road corridors.
 
 partyHeadquarters.forEach((hq,i)=>{
