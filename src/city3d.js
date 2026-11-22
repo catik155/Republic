@@ -56,18 +56,18 @@ const asphalt=new THREE.MeshStandardMaterial({color:'#222c36',roughness:1});
 const sidewalkMat=new THREE.MeshStandardMaterial({color:'#39444f',roughness:1});
 function road(x1,z1,x2,z2,width=3.1){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),angle=Math.atan2(dx,dz),cx=(x1+x2)/2,cz=(z1+z2)/2;const m=new THREE.Mesh(new THREE.BoxGeometry(width,.12,len),asphalt);m.position.set(cx,.06,cz);m.rotation.y=angle;m.receiveShadow=true;city.add(m);const curbW=.18,walkW=1.25;for(const side of [-1,1]){const walk=new THREE.Mesh(new THREE.BoxGeometry(walkW,.09,len),sidewalkMat);walk.position.set(cx,.13,cz);walk.rotation.y=angle;walk.translateX(side*(width/2+curbW+walkW/2));walk.receiveShadow=true;city.add(walk);const curb=new THREE.Mesh(new THREE.BoxGeometry(curbW,.16,len),sidewalkMat);curb.position.set(cx,.12,cz);curb.rotation.y=angle;curb.translateX(side*(width/2+curbW/2));city.add(curb)}}
 // Organic road plan: staggered arterials, angled links and short curved-like segmented streets.
+// Regular connected street grid: restore straight, aligned roads and clear intersections.
 const avenuePaths=[
-[[-43,-20],[-28,-17],[-12,-21],[3,-16],[18,-19],[33,-16],[43,-20]],
-[[-43,1],[-27,4],[-12,0],[4,3],[20,0],[34,4],[43,1]],
-[[-40,20],[-25,17],[-9,22],[7,18],[22,21],[37,18],[43,20]],
-[[-31,-44],[-29,-27],[-33,-10],[-28,8],[-32,24],[-29,43]],
-[[-10,-43],[-7,-26],[-12,-9],[-7,9],[-11,26],[-8,43]],
-[[13,-43],[17,-25],[11,-8],[16,10],[12,26],[16,43]],
-[[32,-43],[28,-26],[34,-8],[29,10],[35,27],[31,43]],
-[[-43,-34],[-31,-28],[-18,-31],[-4,-28],[12,-31],[27,-27],[43,-34]],
-[[-42,34],[-29,29],[-15,33],[0,29],[16,34],[31,30],[43,34]]
+ [[-43,-30],[43,-30]],
+ [[-43,-10],[43,-10]],
+ [[-43,10],[43,10]],
+ [[-43,30],[43,30]],
+ [[-30,-43],[-30,43]],
+ [[-10,-43],[-10,43]],
+ [[10,-43],[10,43]],
+ [[30,-43],[30,43]]
 ];
-avenuePaths.forEach((path,i)=>path.slice(0,-1).forEach((p,j)=>road(p[0],p[1],path[j+1][0],path[j+1][1],i%3===0?3.6:2.8)));
+avenuePaths.forEach(path=>path.slice(0,-1).forEach((p,j)=>road(p[0],p[1],path[j+1][0],path[j+1][1],3.8)));
 // City block/building placement: deterministic, fixed seed list, no random map generation.
 const blockCenters=[
 [-35,-28],[-25,-28],[-15,-27],[-2,-27],[7,-27],[24,-27],[36,-27],
@@ -120,47 +120,45 @@ const parkMat=new THREE.MeshStandardMaterial({color:'#233d32',roughness:1});
 const parkShapes=[[[-39,-33],[-34,-35],[-32,-30],[-35,-25],[-40,-26]],[[-4,-35],[2,-35],[5,-32],[1,-28],[-4,-30]],[[16,29],[20,27],[23,31],[21,36],[17,35]]];
 parkShapes.forEach(points=>{const g=new THREE.Shape();points.forEach(([x,z],i)=>i?g.lineTo(x,-z):g.moveTo(x,-z));g.closePath();const geom=new THREE.ShapeGeometry(g);geom.rotateX(-Math.PI/2);const m=new THREE.Mesh(geom,parkMat);m.position.y=.14;city.add(m)});
 function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,zi]=pts[i],[xj,zj]=pts[j];if(((zi>z)!=(zj>z))&&(x<(xj-xi)*(z-zi)/(zj-zi)+xi))inside=!inside}return inside}
-// Pedestrians have individual destinations and wander between street waypoints; no vehicles.
+// Pedestrians are flat camera-facing dots, walking freely across the full roadway.
 const people=new THREE.Group();scene.add(people);
 const pedestrianPalette=['#4a91ff','#d35a66','#d9b65c','#a681df','#86a0b9'];
 const pedestrianRecords=[];
-const bodyGeo=new THREE.CapsuleGeometry(.12,.38,3,6);
-const headGeo=new THREE.SphereGeometry(.12,8,6);
-const armGeo=new THREE.CapsuleGeometry(.045,.24,2,5),legGeo=new THREE.CapsuleGeometry(.055,.26,2,5);
-// A connected, uneven street network gives pedestrians route choices and keeps them on-road.
-const walkNodes=[[-40,-19],[-27,-17],[-14,-20],[0,-16],[14,-18],[29,-17],[40,-20],
- [-38,1],[-24,3],[-11,0],[3,2],[18,0],[33,3],[41,1],
- [-36,20],[-22,18],[-8,22],[8,19],[23,21],[37,19],
- [-30,39],[-16,36],[-1,40],[15,37],[30,39]];
-const walkLinks=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[7,8],[8,9],[9,10],[10,11],[11,12],[12,13],[14,15],[15,16],[16,17],[17,18],[18,19],[20,21],[21,22],[22,23],[23,24],[0,7],[1,8],[2,9],[3,10],[4,11],[5,12],[7,14],[8,15],[9,16],[10,17],[11,18],[12,19],[14,20],[15,21],[16,22],[17,23],[18,24]];
+const walkNodes=[];const grid=[-30,-10,10,30];
+grid.forEach(z=>grid.forEach(x=>walkNodes.push([x,z])));
 const walkAdj=walkNodes.map(()=>[]);
+const walkLinks=[];
+for(let row=0;row<4;row++)for(let col=0;col<4;col++){
+ const i=row*4+col;
+ if(col<3)walkLinks.push([i,i+1]);
+ if(row<3)walkLinks.push([i,i+4]);
+}
 walkLinks.forEach(([a,b])=>{walkAdj[a].push(b);walkAdj[b].push(a)});
-// Stable per-agent random sequence: movement remains varied, but reloads reproduce the same city.
 function seededValue(seed){const n=Math.sin(seed*127.1+311.7)*43758.5453;return n-Math.floor(n)}
 function pickNextNode(current,previous,seed=0){const options=walkAdj[current].filter(i=>i!==previous);return options.length?options[Math.floor(seededValue(seed+current*17.3)*options.length)]:walkAdj[current][0]??current}
-for(let k=0;k<90;k++){
- const start=k%walkNodes.length, material=new THREE.MeshStandardMaterial({color:pedestrianPalette[k%5],roughness:.8});
- const person=new THREE.Group(),body=new THREE.Mesh(bodyGeo,material),head=new THREE.Mesh(headGeo,material);
- body.position.y=.38;head.position.y=.68;person.add(body,head);
- const limbs=[];for(const side of [-1,1]){const armPivot=new THREE.Group();armPivot.position.set(side*.14,.48,0);const arm=new THREE.Mesh(armGeo,material);arm.position.y=-.13;armPivot.add(arm);person.add(armPivot);limbs.push(armPivot);const legPivot=new THREE.Group();legPivot.position.set(side*.07,.22,0);const leg=new THREE.Mesh(legGeo,material);leg.position.y=-.13;legPivot.add(leg);person.add(legPivot);limbs.push(legPivot)}
- person.position.y=.02;people.add(person);
- const target=pickNextNode(start,-1,k+91);
- pedestrianRecords.push({dot:person,limbs,node:start,previous:-1,target,progress:seededValue(k+5)*.45,speed:.7+seededValue(k+19)*.65,side:(k%2?-1:1),phase:seededValue(k+37)*Math.PI*2,seed:k});
+function makeDotTexture(color){
+ const c=document.createElement('canvas');c.width=64;c.height=64;const g=c.getContext('2d');
+ g.beginPath();g.arc(32,32,25,0,Math.PI*2);g.fillStyle=color;g.fill();g.lineWidth=4;g.strokeStyle='#e8f0fa';g.stroke();
+ g.beginPath();g.arc(32,32,7,0,Math.PI*2);g.fillStyle='#fff';g.fill();
+ return new THREE.CanvasTexture(c);
 }
-function movePedestrians(time){pedestrianRecords.forEach(p=>{
- const a=walkNodes[p.node],b=walkNodes[p.target];
- p.progress+=p.speed*.004;
- if(p.progress>=1){p.previous=p.node;p.node=p.target;p.target=pickNextNode(p.node,p.previous,p.seed+Math.floor(time*10));p.progress=0}
- const t=p.progress, x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
- // Gentle lateral sway and a small random drift so walking doesn't look like a rigid line.
- const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;
- const sway=p.side*2.1+Math.sin(time*1.6+p.phase)*.12;
- p.dot.position.set(x-dz/len*sway,.02,z+dx/len*sway);
- p.dot.rotation.y=Math.atan2(dx,dz);
- const gait=Math.sin(time*5.5+p.phase);
- p.limbs[0].rotation.z=gait*.32;p.limbs[1].rotation.z=-gait*.32;
- p.limbs[2].rotation.z=-gait*.4;p.limbs[3].rotation.z=gait*.4;
-})}
+const dotMaterials=pedestrianPalette.map(color=>new THREE.SpriteMaterial({map:makeDotTexture(color),transparent:true,depthWrite:false}));
+for(let k=0;k<90;k++){
+ const start=k%walkNodes.length, dot=new THREE.Sprite(dotMaterials[k%5]);
+ dot.scale.set(.95,.95,1);dot.position.y=.48;people.add(dot);
+ pedestrianRecords.push({dot,node:start,previous:-1,target:pickNextNode(start,-1,k+91),progress:seededValue(k+5)*.45,speed:.12+seededValue(k+19)*.16,offset:seededValue(k+23)*2.2-1.1,phase:seededValue(k+37)*Math.PI*2,seed:k});
+}
+function movePedestrians(time){
+ pedestrianRecords.forEach(p=>{
+  const a=walkNodes[p.node],b=walkNodes[p.target];
+  p.progress+=p.speed;
+  if(p.progress>=1){p.previous=p.node;p.node=p.target;p.target=pickNextNode(p.node,p.previous,p.seed+Math.floor(time*3));p.progress=0;p.offset=seededValue(p.seed+time*2)*2.4-1.2}
+  const t=p.progress,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
+  const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;
+  // Offset is randomized within the full road width, not on a narrow sidewalk line.
+  p.dot.position.set(x-dz/len*p.offset,.48,z+dx/len*p.offset);
+ });
+}
 const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*2-1;mouse.y=-((e.clientY-r.top)/r.height*2-1);raycaster.setFromCamera(mouse,camera);const hits=raycaster.intersectObjects(districtMeshes,false);if(hits.length){selectedDistrict=hits[0].object.userData.district;document.querySelector('#districtName').textContent=selectedDistrict.name;document.querySelector('#inspect').innerHTML=`<strong>${selectedDistrict.name}</strong><br>Район: ${selectedDistrict.type==='business'?'деловой':selectedDistrict.type==='industrial'?'промышленный':selectedDistrict.type==='civic'?'административный':'жилой'}<br>Население: ${(220+selectedDistrict.pts.length*86)} тыс.<br>Экономика: ${61+selectedDistrict.pts.length}%<br>Инфраструктура: ${54+selectedDistrict.pts.length*3}%<br>Экология: ${70-selectedDistrict.pts.length*2}%`;districtMeshes.forEach(m=>m.material.opacity=(m.userData.district===selectedDistrict)?0.85:0.56)}});
 function setLayer(id,fn){document.getElementById(id).addEventListener('change',fn)}
 setLayer('showPeople',()=>people.visible=document.getElementById('showPeople').checked);
