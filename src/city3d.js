@@ -131,7 +131,7 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
    if(variant===3&&wi%2===0){const sideWin=win.clone();if(frontAxis==='x'){sideWin.position.set(x-frontSign*(w/2+.026),floor*1.22,z+t);sideWin.rotation.y=-frontSign*Math.PI/2;}else{sideWin.position.set(x+t,floor*1.22,z-frontSign*(h/2+.026));sideWin.rotation.y=frontSign>0?0:Math.PI;}city.add(sideWin);}
   }
   const side=frontAxis,sign=frontSign;
-  const entryX=x+(side==='x'?sign*(w/2+.55):0),entryZ=z+(side==='z'?sign*(h/2+.55):0);const door=new THREE.Mesh(new THREE.BoxGeometry(.55,.9,.08),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(entryX,.5,entryZ);if(side==='x')door.rotation.y=sign>0?-Math.PI/2:Math.PI/2;city.add(door);bldgs.push({mesh,district,floors,kind:district.type,x,z,w,h,entryX,entryZ,variant});
+  const entryX=x+(side==='x'?sign*(w/2+.55):0),entryZ=z+(side==='z'?sign*(h/2+.55):0);const door=new THREE.Mesh(new THREE.BoxGeometry(.55,.9,.08),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(entryX,.5,entryZ);if(side==='x')door.rotation.y=sign>0?-Math.PI/2:Math.PI/2;city.add(door);bldgs.push({mesh,district,floors,kind:district.type,x,z,w,h,entryX,entryZ,variant,frontAxis,frontSign});
  });
 });
 // Fine city detailing is static and deterministic: windows, roof equipment, crossings, and street lighting.
@@ -143,13 +143,21 @@ const facadeWindowFront=new THREE.InstancedMesh(facadeWindowGeo,facadeWindowMat,
 const facadeWindowSide=new THREE.InstancedMesh(facadeSideGeo,facadeWindowMat,1200);
 const windowDummy=new THREE.Object3D();let frontWindowCount=0,sideWindowCount=0;
 bldgs.forEach((b,bi)=>{
- const floorCount=Math.max(1,b.floors-1),cols=Math.max(1,Math.floor(b.w/.65));
+ const floorCount=Math.max(1,b.floors-1),cols=Math.max(1,Math.floor((b.frontAxis==='x'?b.h:b.w)/.65));
  for(let f=1;f<=floorCount;f++){
   const y=f*1.22;
   for(let c=0;c<cols;c++){
-   const x=b.x+(c-(cols-1)/2)*.62;
-   if(frontWindowCount<facadeWindowFront.count){windowDummy.position.set(x,y,b.z-b.h/2-.045);windowDummy.rotation.set(0,0,0);windowDummy.updateMatrix();facadeWindowFront.setMatrixAt(frontWindowCount++,windowDummy.matrix);}
-   if(sideWindowCount<facadeWindowSide.count){const z=b.z+(c-(cols-1)/2)*.62;windowDummy.position.set(b.x+b.w/2+.045,y,z);windowDummy.updateMatrix();facadeWindowSide.setMatrixAt(sideWindowCount++,windowDummy.matrix);}
+   const t=(c-(cols-1)/2)*.62;
+   if(frontWindowCount<facadeWindowFront.count){
+    if(b.frontAxis==='x'){windowDummy.position.set(b.x+b.frontSign*(b.w/2+.045),y,b.z+t);windowDummy.rotation.y=b.frontSign>0?Math.PI/2:-Math.PI/2;}
+    else{windowDummy.position.set(b.x+t,y,b.z+b.frontSign*(b.h/2+.045));windowDummy.rotation.y=b.frontSign>0?0:Math.PI;}
+    windowDummy.updateMatrix();facadeWindowFront.setMatrixAt(frontWindowCount++,windowDummy.matrix);
+   }
+   if(b.variant===3&&sideWindowCount<facadeWindowSide.count){
+    if(b.frontAxis==='x'){windowDummy.position.set(b.x-b.frontSign*(b.w/2+.045),y,b.z+t);windowDummy.rotation.y=-b.frontSign*Math.PI/2;}
+    else{windowDummy.position.set(b.x+t,y,b.z-b.frontSign*(b.h/2+.045));windowDummy.rotation.y=b.frontSign>0?Math.PI:0;}
+    windowDummy.updateMatrix();facadeWindowSide.setMatrixAt(sideWindowCount++,windowDummy.matrix);
+   }
   }
  }
  // Deterministic district storefront canopies and civic entrance details.
