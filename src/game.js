@@ -68,13 +68,16 @@
   }else if(a.type==='election'){
     state.elections++;const seats=allocateSeats(state.support);let winner=0;for(let i=1;i<state.support.length;i++)if(state.support[i]>state.support[winner])winner=i;
     const top=state.support[winner],result=top>=50?'получила абсолютное большинство':top>=35?'лидирует':'побеждает в относительном большинстве';
-    state.coalition=[];let coalitionSeats=0;if(seats[winner]>=226){state.coalition=[winner];coalitionSeats=seats[winner];}else{const ranking=seats.map((s,i)=>({i,s})).sort((a,b)=>b.s-a.s);for(const p of ranking){if(!state.coalition.includes(p.i)){state.coalition.push(p.i);coalitionSeats+=p.s;if(coalitionSeats>=226)break;}}}
-    const coalitionNames=state.coalition.map(i=>state.partyNames[i]).join(' + ');state.governmentConfidence=coalitionSeats>=226?Math.min(90,55+Math.round((coalitionSeats-226)/4)):25;
-    state.stability=Math.min(95,state.stability+(coalitionSeats>=226?4:1));state.budget=Math.max(0,state.budget+(coalitionSeats>=226?1:.3));
-    log('🗳 Выборы №'+state.elections+' · «'+state.partyNames[winner]+'» '+result+' ('+top.toFixed(1)+'%, '+seats[winner]+' из 450). Коалиция: '+coalitionNames+' — '+coalitionSeats+'/450 мест.');
+    state.coalition=[];const ranking=seats.map((seat,i)=>({i,seat})).sort((a,b)=>b.seat-a.seat);const proposed=[];let proposedSeats=0;if(seats[winner]>=226){proposed.push(winner);proposedSeats=seats[winner]}else{for(const p of ranking){if(!proposed.includes(p.i)){proposed.push(p.i);proposedSeats+=p.seat;if(proposedSeats>=226)break}}}
+    const coalitionNames=proposed.map(i=>state.partyNames[i]).join(' + ');state.governmentConfidence=25;
+    state.stability=Math.min(95,state.stability+1);state.budget=Math.max(0,state.budget+.3);
+    const bars=ranking.map(p=>state.partyNames[p.i]+': '+p.seat+' мест ('+Math.round(state.support[p.i])+'%)').join('\\n');
+    const headline='🗳 Выборы №'+state.elections+' · победитель: «'+state.partyNames[winner]+'» '+result+' ('+top.toFixed(1)+'%).';
+    log(headline+' Парламент: '+bars+'\nПредложение коалиции: '+coalitionNames+' — '+proposedSeats+'/450 мест.');
+    event={title:'Итоги выборов · парламент',message:headline+'\n\nРаспределение мест:\\n'+bars+'\n\nПредложена коалиция: '+coalitionNames+' ('+proposedSeats+'/450). Хотите начать переговоры и сформировать правительство?',choices:[{label:'Согласиться на предложенную коалицию',onClick:()=>{state.coalition=proposed.slice();state.governmentConfidence=proposedSeats>=226?Math.min(90,55+Math.round((proposedSeats-226)/4)):25;state.stability=Math.min(95,state.stability+3);log('Коалиция сформирована: '+coalitionNames+' — '+proposedSeats+'/450 мест.')}},{label:'Отказаться и начать переговоры вручную',onClick:()=>{state.coalition=[];state.governmentConfidence=0;log('Формирование правительства отложено. Начните переговоры с партиями парламента.')}},{label:'Отказ от коалиции · правительство меньшинства',onClick:()=>{state.coalition=[winner];state.governmentConfidence=20;log('Партия «'+state.partyNames[winner]+'» сформировала правительство меньшинства без 226 голосов.')}}]};
   }
   render();save();toast(a.type==='advance'?'Месяц продвинут':'Действие выполнено');
-  if(event){popup(event.title,state.chronicle+'\\n\\n'+event.message,event.choices.map(choice=>({label:choice.label,onClick:()=>{choice.onClick();log('Решение принято: '+choice.label.split(' · ')[0]+'.');render();save();toast('Последствия решения применены')}})));}
+  if(event){popup(event.title,event.message,event.choices.map(choice=>({label:choice.label,onClick:()=>{choice.onClick();log('Решение принято: '+choice.label.split(' · ')[0]+'.');render();save();toast('Последствия решения применены')}})));}
   else if(!a.automatic){const title=a.type==='advance'?'Новый месяц':a.type==='election'?'Итоги выборов':a.type==='campaign'?'Предвыборная кампания':a.type==='law'?'Результат голосования':'Политическое событие';popup(title,state.chronicle);}
  }
  function bindConn(conn,isIncoming){
