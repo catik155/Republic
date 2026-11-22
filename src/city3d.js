@@ -17,14 +17,14 @@ renderer.toneMappingExposure=1.05;
 const scene=new THREE.Scene();
 scene.background=new THREE.Color('#080e15');
 scene.fog=new THREE.Fog('#080e15',85,155);
-const camera=new THREE.PerspectiveCamera(42,initialWidth/initialHeight,.1,250);
+const camera=new THREE.PerspectiveCamera(42,initialWidth/initialHeight,.1,280);
 camera.position.set(48,62,68);
 const controls=new OrbitControls(camera,renderer.domElement);
-controls.target.set(0,0,0);controls.enableDamping=true;controls.dampingFactor=.06;controls.maxPolarAngle=Math.PI*.46;controls.minDistance=28;controls.maxDistance=115;
+controls.target.set(0,0,0);controls.enableDamping=true;controls.dampingFactor=.06;controls.maxPolarAngle=Math.PI*.46;controls.minDistance=28;controls.maxDistance=145;
 scene.add(new THREE.HemisphereLight(0x9bb8d5,0x182019,2.1));
 const sun=new THREE.DirectionalLight(0xb8d0e9,2.6);sun.position.set(-35,55,25);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-65;sun.shadow.camera.right=65;sun.shadow.camera.top=65;sun.shadow.camera.bottom=-65;scene.add(sun);
 const city=new THREE.Group();scene.add(city);
-const floor=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:'#101923',roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.5;floor.receiveShadow=true;city.add(floor);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(148,148),new THREE.MeshStandardMaterial({color:'#101923',roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.5;floor.receiveShadow=true;city.add(floor);
 const districts=[
 {name:'Старый город',type:'civic',pts:[[-42,-42],[-14,-42],[-14,-14],[-42,-14]],color:'#526e83'},
 {name:'Центральный',type:'business',pts:[[-14,-42],[14,-42],[14,-14],[-14,-14]],color:'#557866'},
@@ -89,7 +89,7 @@ function nearRoad(px,pz,buildingRadius=1.7){for(let pathIndex=0;pathIndex<avenue
 blockCenters.forEach(([baseX,baseZ],idx)=>{
  const bx=baseX+Math.sin(idx*12.9898)*1.6,bz=baseZ+Math.cos(idx*7.233)*1.5;
  const district=districts.find(d=>pointInPolygon([bx,bz],d.pts))||districts[4];
- const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9]];
+ const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9],[-4.0,-2.8],[4.0,-2.6],[-3.8,3.7],[4.1,3.8]];
  variations.forEach(([dx,dz],k)=>{
   const x=bx+dx,z=bz+dz;if(Math.abs(x)>41||Math.abs(z)>43)return;
   let floors=1+((idx*3+k*5)%6);if(district.type==='business')floors+=3;if(district.type==='industrial')floors=1+((idx+k)%3);
