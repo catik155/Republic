@@ -98,14 +98,33 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
  variations.forEach(([dx,dz],k)=>{
   const x=bx+dx,z=bz+dz;if(Math.abs(x)>41||Math.abs(z)>43)return;
   let floors=1+((idx*3+k*5)%6);if(district.type==='business')floors+=3;if(district.type==='industrial')floors=1+((idx+k)%3);
-  const w=2.4+(idx%3)*.25,h=2.2+(k%2)*.3;
-  if((Math.abs(x)<7&&Math.abs(z)<7)||nearRoad(x,z,Math.max(w,h)/2)||partyHeadquarters.some(hq=>Math.abs(x-hq.x)<4.5&&Math.abs(z-hq.z)<4.2))return;
-  const color=district.type==='business'?'#566777':district.type==='industrial'?'#4b5b61':['#485563','#3f4c59','#53616e'][(idx+k)%3];
-  const geom=new THREE.BoxGeometry(w,floors*1.25,h),mat=new THREE.MeshStandardMaterial({color,roughness:.84});
-  const mesh=new THREE.Mesh(geom,mat);mesh.position.set(x,floors*.625+.12,z);mesh.castShadow=true;mesh.receiveShadow=true;city.add(mesh);
-  const roof=new THREE.Mesh(new THREE.BoxGeometry(w+.18,.14,h+.18),new THREE.MeshStandardMaterial({color:'#657586',roughness:.85}));roof.position.set(x,floors*1.25+.2,z);roof.castShadow=true;city.add(roof);
-  if(floors>2){const winMat=new THREE.MeshStandardMaterial({color:'#92a9ba',emissive:'#26394a',emissiveIntensity:.22,roughness:.45});for(let floor=1;floor<floors;floor++){const strip=new THREE.Mesh(new THREE.BoxGeometry(w*.65,.12,.035),winMat);strip.position.set(x,floor*1.22,z-h/2-.02);city.add(strip)}}
-  const nearestStreet=[-30,-10,10,30].reduce((best,coord)=>{const candidate=[Math.abs(x-coord),Math.abs(z-coord)];return candidate[0]+candidate[1]<best.dist?{dist:candidate[0]+candidate[1],dx:candidate[0],dz:candidate[1],sx:coord,sz:coord}:best},{dist:Infinity,dx:Infinity,dz:Infinity,sx:0,sz:0});const side=nearestStreet.dx<nearestStreet.dz?'x': 'z';const sign=side==='x'?(nearestStreet.sx<x?-1:1):(nearestStreet.sz<z?-1:1);const entryX=x+(side==='x'?sign*(w/2+.55):0),entryZ=z+(side==='z'?sign*(h/2+.55):0);const door=new THREE.Mesh(new THREE.BoxGeometry(.55,.9,.08),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(entryX,.5,entryZ);if(side==='x')door.rotation.y=Math.PI/2;city.add(door);bldgs.push({mesh,district,floors,kind:district.type,x,z,w,h,entryX,entryZ});
+  const w=2.25+((idx+k)%4)*.32,h=2.05+((idx*2+k)%4)*.28;
+  // Keep building footprints clear of roads, neighboring buildings and civic/party landmarks.
+  const roadClear=!nearRoad(x,z,Math.max(w,h)/2+.28);
+  const buildingClear=bldgs.every(b=>Math.abs(x-b.x)>=(w+b.w)/2+.35||Math.abs(z-b.z)>=(h+b.h)/2+.35);
+  const hqClear=partyHeadquarters.every(hq=>Math.abs(x-hq.x)>=w/2+3.1||Math.abs(z-hq.z)>=h/2+2.7);
+  const govClear=Math.abs(x)>=w/2+5.0||Math.abs(z)>=h/2+4.6;
+  if((Math.abs(x)<7&&Math.abs(z)<7)||!roadClear||!buildingClear||!hqClear||!govClear)return;
+  const color=district.type==='business'?'#566777':district.type==='industrial'?'#4b5b61':['#485563','#3f4c59','#53616e','#655c56','#5a6570'][(idx+k)%5];
+  const variant=(idx*7+k*3)%4,mat=new THREE.MeshStandardMaterial({color,roughness:.84});
+  const geom=new THREE.BoxGeometry(w,floors*1.25,h),mesh=new THREE.Mesh(geom,mat);mesh.position.set(x,floors*.625+.12,z);mesh.castShadow=true;mesh.receiveShadow=true;city.add(mesh);
+  const roofMat=new THREE.MeshStandardMaterial({color:['#657586','#465563','#596b76','#6b6258'][variant],roughness:.85});
+  let roof;
+  if(variant===1){roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,h)*.68,.9,4),roofMat);roof.rotation.y=Math.PI/4;roof.scale.set(w/Math.max(w,h),1,h/Math.max(w,h));}
+  else if(variant===2){const g=new THREE.Group();const ridge=new THREE.Mesh(new THREE.BoxGeometry(w+.18,.18,.18),roofMat);ridge.position.y=.45;g.add(ridge);const slope=new THREE.Mesh(new THREE.BoxGeometry(w+.22,.12,h*.72),roofMat);slope.rotation.x=.42;slope.position.set(0,.25,-h*.18);g.add(slope);const slope2=slope.clone();slope2.rotation.x=-.42;slope2.position.set(0,.25,h*.18);g.add(slope2);roof=g;}
+  else roof=new THREE.Mesh(new THREE.BoxGeometry(w+.18,.14,h+.18),roofMat);
+  roof.position.set(x,floors*1.25+.2,z);roof.castShadow=true;city.add(roof);
+  // Facade orientation and window arrangement vary by deterministic house style.
+  const facadeMat=new THREE.MeshStandardMaterial({color:['#92a9ba','#d1b78d','#9bb8a7','#b4a2c7'][variant],emissive:'#26394a',emissiveIntensity:.22,roughness:.45});
+  const windowCount=Math.max(1,Math.floor(w/.7));
+  for(let floor=1;floor<floors;floor++)for(let wi=0;wi<windowCount;wi++){
+   const win=new THREE.Mesh(new THREE.BoxGeometry(.42,.32,.045),facadeMat);
+   const front=variant%2===0?-1:1,side=variant<2?-1:1,wx=x+(wi-(windowCount-1)/2)*.68;
+   if((idx+k+floor+wi)%2===0){win.position.set(wx,floor*1.22,z+front*(h/2+.026));if(front>0)win.rotation.y=Math.PI;}
+   else{win.position.set(x+side*(w/2+.026),floor*1.22,z+(wi-(windowCount-1)/2)*.6);win.rotation.y=side<0?Math.PI/2:-Math.PI/2;}
+   city.add(win);
+  }
+  const nearestStreet=[-30,-10,10,30].reduce((best,coord)=>{const candidate=[Math.abs(x-coord),Math.abs(z-coord)];return candidate[0]+candidate[1]<best.dist?{dist:candidate[0]+candidate[1],dx:candidate[0],dz:candidate[1],sx:coord,sz:coord}:best},{dist:Infinity,dx:Infinity,dz:Infinity,sx:0,sz:0});const side=nearestStreet.dx<nearestStreet.dz?'x': 'z';const sign=side==='x'?(nearestStreet.sx<x?-1:1):(nearestStreet.sz<z?-1:1);const entryX=x+(side==='x'?sign*(w/2+.55):0),entryZ=z+(side==='z'?sign*(h/2+.55):0);const door=new THREE.Mesh(new THREE.BoxGeometry(.55,.9,.08),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(entryX,.5,entryZ);if(side==='x')door.rotation.y=Math.PI/2;city.add(door);bldgs.push({mesh,district,floors,kind:district.type,x,z,w,h,entryX,entryZ,variant});
  });
 });
 // Fine city detailing is static and deterministic: windows, roof equipment, crossings, and street lighting.
