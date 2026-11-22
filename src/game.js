@@ -36,7 +36,7 @@
       else {rivalMoves.push(state.partyNames[rival]+' ведёт переговоры');}
     }
     const rivalTotal=state.support.reduce((x,y)=>x+y,0)||1;state.support=state.support.map(v=>v*100/rivalTotal);
-    log('📅 '+months[state.month-1]+' '+state.year+' · экономика, рейтинг правительства и общественное настроение обновлены.');
+    log('📅 '+months[state.month-1]+' '+state.year+' · экономика, рейтинг правительства обновлены. Соперники: '+rivalMoves.join('; ')+'.');
     if(Math.random()<.4){
       const crises=[
         {title:'Забастовка в промышленном секторе',message:'Рабочие требуют пересмотра условий труда.',choices:[{label:'Повысить зарплаты · бюджет −4 млрд, стабильность +3',onClick:()=>{state.budget=Math.max(0,state.budget-4);state.stability=Math.min(95,state.stability+3)}},{label:'Провести переговоры · бюджет −2 млрд, стабильность +1',onClick:()=>{state.budget=Math.max(0,state.budget-2);state.stability=Math.min(95,state.stability+1)}},{label:'Не вмешиваться · бюджет +1 млрд, стабильность −4',onClick:()=>{state.budget+=1;state.stability=Math.max(5,state.stability-4)}}]},
