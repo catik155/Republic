@@ -12,7 +12,7 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Dark 3D city, district polygons, connected streets, government landmark, party headquarters, parks.
 - [x] Densify building blocks; extend city floor/camera bounds.
 - [x] Residents have goal-directed street movement.
-- [x] Residential destinations; approach house entrances, fade as they enter, remain indoors, return later.
+- [ ] Basic residential lifecycle code exists (street destination → fade/inside → return), but door alignment and actual visible behavior still need browser verification.
 - [x] Pair encounters pause residents and show a conversation bubble.
 - [ ] Fix house entrance alignment/door visibility and verify movement visually.
 - [ ] Add more reliable pathfinding, avoid backtracking/traffic-like bunching and walking through buildings.
@@ -28,7 +28,7 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Crisis events and protests, with choices and consequences.
 - [x] Election results and 450-seat parliament diagram.
 - [x] Coalition offer after elections; accept, refuse and manually negotiate, or minority government.
-- [x] Scheduled four-year elections added; verify end-of-year event handling.
+- [ ] Four-year election scheduling implemented; end-of-year triggering and modal flow still need gameplay verification.
 - [ ] Improve coalition bargaining: cabinet/ministerial portfolios, policy promises, party acceptance, confidence votes.
 - [ ] Make laws materially affect economy, population, parties, districts, and future elections.
 - [ ] Add party leaders, personalities, priorities, campaign AI and event-driven rival actions.
@@ -37,8 +37,8 @@ This document tracks the game direction requested by the player across earlier d
 
 ## UI and playability
 - [x] Dark political-strategy interface, map layers, inspector, chronicle, tabs and dialogs.
-- [ ] Make mobile layout usable (current side panels are hidden at small widths; replace with accessible collapsible panels).
-- [ ] Add proper map overlays/legend, informative district inspection and non-placeholder district stats.
+- [x] Add mobile panel toggle to switch between action and inspector panels on narrow screens (visual testing still pending).
+- [ ] Add proper map overlays/legend. District inspector now derives building counts, population estimate, and economy/infrastructure/ecology indicators from district data; still needs visual/gameplay validation.
 - [ ] Build readable election, government, law, economy and party screens with visual data.
 - [ ] Add tooltips, help/tutorial, pause/speed controls, autosave feedback and settings.
 - [ ] Add citizen activity feed and city events visible on map.
