@@ -31,7 +31,7 @@
     const rivalMoves=[];
     for(let rival=1;rival<state.partyNames.length;rival++){
       const roll=Math.random();
-      if(roll<.48){const gain=.22+Math.random()*.32;state.support[rival]+=gain;state.support[0]=Math.max(1,state.support[0]-gain*.18);rivalMoves.push(state.partyNames[rival]+' провела кампанию');}
+      if(roll<.48){const modeRoll=Math.random(),mode=modeRoll<.34?'митинг':modeRoll<.68?'медиакампания':'работа с жителями';const gain=.2+Math.random()*.38;state.support[rival]+=gain;if(mode==='митинг')state.unrest=Math.min(100,state.unrest+.25);if(mode==='работа с жителями')state.unrest=Math.max(0,state.unrest-.35);state.support[0]=Math.max(1,state.support[0]-gain*.18);rivalMoves.push(state.partyNames[rival]+' провела кампанию ('+mode+')');}
       else if(roll<.76){const delta=(Math.random()-.35)*.18;state.stability=Math.max(10,Math.min(95,state.stability+delta));rivalMoves.push(state.partyNames[rival]+' выступила с инициативой');}
       else {rivalMoves.push(state.partyNames[rival]+' ведёт переговоры');}
     }
