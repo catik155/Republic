@@ -9,12 +9,15 @@ This document tracks the game direction requested by the player across earlier d
 - [ ] Browser HTML game remains the primary easy-to-play version; no dedicated server required for local play.
 
 ## City and residents
-- [x] Dark 3D city, district polygons, connected streets, government landmark, party headquarters, parks.
+- [x] Dark 3D city, 25 district polygons, connected streets, government landmark, party headquarters, parks.
 - [x] Densify building blocks; extend city floor/camera bounds.
 - [x] Residents have goal-directed street movement.
 - [ ] Basic residential lifecycle code exists (street destination → fade/inside → return), but door alignment and actual visible behavior still need browser verification.
 - [x] Pair encounters pause residents and show a conversation bubble; conversation rate, range and cooldown are adjustable in the city admin panel.
 - [ ] Fix house entrance alignment/door visibility and verify movement visually.
+- [x] Keep transparent district overlays from writing depth and hiding pedestrians; move pedestrian start waypoints off intersection centers.
+- [x] Split district overlay into 25 grid cells and rename regions by location; avoid falsely calling a district 'Riverside' when no river is present.
+- [x] Move parks into block interiors, away from the road center lines.
 - [x] Shortest-path routing on the street graph with cached distance maps; still requires visual verification and pedestrian avoidance refinements.
 - [x] Expand resident outing destinations to shops, civic buildings, party headquarters, and parks; park/shop stops and office visits use deterministic selection and street-graph routing.
 - [ ] Add benches, workplace destinations, errands, and more varied activity durations; verify indoor/door transitions visually.
@@ -24,7 +27,7 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Add automatic placement checks for party HQs against road corridors and building footprints, with admin-panel audit display.
 - [x] Add fixed park benches and small trees to the three static park spaces.
 - [x] Add deterministic static city details: facade window instancing, rooftop HVAC/vents, central crosswalk markings, sidewalk street lamps, storefront canopies, and civic entrance columns (built once with the map).
-- [ ] Expand city streets, coherent block geometry, more buildings, distinct neighborhood landmarks and visual polish.
+- [ ] Expand city streets, coherent block geometry, more buildings, distinct neighborhood landmarks and visual polish; 25-cell district grid and off-road parks now implemented, needs browser visual review.
 - [ ] Make citizen circles represent residents consistently, with grouping/interaction and readable activity state.
 
 ## Political simulation
