@@ -115,6 +115,15 @@ partyHeadquarters.forEach((hq,i)=>{
  const marker=new THREE.Mesh(new THREE.BoxGeometry(3.4,.24,.08),colorMat);marker.position.set(hq.x,4.4,hq.z-1.9);city.add(marker);
  const label=makeLabel('Штаб: '+hq.name);label.scale.set(13,3.2,1);label.position.set(hq.x,7.2,hq.z);city.add(label);
 });
+// Permanent central government landmark (built once with the city scene, not on each game month).
+const government=new THREE.Group();government.position.set(0,0,0);city.add(government);
+const govBase=new THREE.Mesh(new THREE.BoxGeometry(9.2,.7,8.4),new THREE.MeshStandardMaterial({color:'#354454',roughness:.75}));govBase.position.y=.35;govBase.castShadow=true;govBase.receiveShadow=true;government.add(govBase);
+const govBody=new THREE.Mesh(new THREE.BoxGeometry(7.2,5.8,6.4),new THREE.MeshStandardMaterial({color:'#7a8791',roughness:.72}));govBody.position.y=3.25;govBody.castShadow=true;govBody.receiveShadow=true;government.add(govBody);
+const govWing=new THREE.Mesh(new THREE.BoxGeometry(8.4,1.05,7.5),new THREE.MeshStandardMaterial({color:'#a6b3bc',roughness:.6}));govWing.position.y=6.35;govWing.castShadow=true;government.add(govWing);
+const govRoof=new THREE.Mesh(new THREE.CylinderGeometry(1.6,2.8,1.4,12),new THREE.MeshStandardMaterial({color:'#465a6c',roughness:.7}));govRoof.position.y=7.5;government.add(govRoof);
+const govDome=new THREE.Mesh(new THREE.SphereGeometry(1.5,16,8,0,Math.PI*2,0,Math.PI/2),new THREE.MeshStandardMaterial({color:'#758999',roughness:.55}));govDome.position.y=8.2;government.add(govDome);
+for(let col=-2;col<=2;col++){const pillar=new THREE.Mesh(new THREE.BoxGeometry(.45,3.8,.55),new THREE.MeshStandardMaterial({color:'#d2dbe2',roughness:.48}));pillar.position.set(col*1.25,3.0,-3.25);pillar.castShadow=true;government.add(pillar)}
+const govSign=makeLabel('ПРАВИТЕЛЬСТВО');govSign.scale.set(17,4,1);govSign.position.set(0,10.3,0);city.add(govSign);
 // Parks are deliberate landscaped spaces in the static city plan
 const parkMat=new THREE.MeshStandardMaterial({color:'#233d32',roughness:1});
 const parkShapes=[[[-39,-33],[-34,-35],[-32,-30],[-35,-25],[-40,-26]],[[-4,-35],[2,-35],[5,-32],[1,-28],[-4,-30]],[[16,29],[20,27],[23,31],[21,36],[17,35]]];
