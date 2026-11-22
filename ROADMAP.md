@@ -16,7 +16,8 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Pair encounters pause residents and show a conversation bubble; conversation rate, range and cooldown are adjustable in the city admin panel.
 - [ ] Fix house entrance alignment/door visibility and verify movement visually.
 - [x] Shortest-path routing on the street graph with cached distance maps; still requires visual verification and pedestrian avoidance refinements.
-- [ ] Expand destinations and routines (shops, government, party offices, benches, work, errands); park leisure stops with a short idle pause are implemented as a basic prototype.
+- [x] Expand resident outing destinations to shops, civic buildings, party headquarters, and parks; park/shop stops and office visits use deterministic selection and street-graph routing.
+- [ ] Add benches, workplace destinations, errands, and more varied activity durations; verify indoor/door transitions visually.
 - [x] Increase pedestrian pool to 150; admin default displays 110, adjustable 90–150.
 - [x] Reduce casual conversations with distance gating, 12% encounter probability, short conversation durations, and 25-second individual cooldowns; adjustable in the admin panel.
 - [x] Add an in-game admin panel for pedestrian count and conversation behavior settings.
