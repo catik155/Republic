@@ -51,7 +51,7 @@
       }
       event=crises[Math.floor(Math.random()*crises.length)];
     }
-    if(state.month===12&&state.year>=state.nextElectionYear){state.nextElectionYear+=4;applyAction({type:'election',automatic:true},false)}
+    if(state.elections===0&&state.month===2){log('Первый месяц завершён. Начинаются первые выборы.');applyAction({type:'election',automatic:true},false)}else if(state.month===12&&state.year>=state.nextElectionYear){state.nextElectionYear+=4;applyAction({type:'election',automatic:true},false)}
   }else if(a.type==='campaign'){
     state.campaigns++;const idx=(a.partyIndex??(state.campaigns-1))%state.partyNames.length;const mode=a.campaignMode||'standard';const gain=mode==='rally'?2.1:mode==='media'?1.65:1.25;if(mode==='rally')state.budget=Math.max(0,state.budget-2.2);else if(mode==='media')state.politicalCapital=Math.max(0,(state.politicalCapital??0)-2);else state.budget=Math.max(0,state.budget-1.1);if(mode==='outreach')state.unrest=Math.max(0,state.unrest-2);
     state.support[idx]=Math.min(70,state.support[idx]+gain);
