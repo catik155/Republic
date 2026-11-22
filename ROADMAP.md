@@ -15,7 +15,7 @@ This document tracks the game direction requested by the player across earlier d
 - [ ] Basic residential lifecycle code exists (street destination → fade/inside → return), but door alignment and actual visible behavior still need browser verification.
 - [x] Pair encounters pause residents and show a conversation bubble.
 - [ ] Fix house entrance alignment/door visibility and verify movement visually.
-- [ ] Add more reliable pathfinding, avoid backtracking/traffic-like bunching and walking through buildings.
+- [x] Shortest-path routing on the street graph with cached distance maps; still requires visual verification and pedestrian avoidance refinements.
 - [ ] Add destinations and activities: parks, plazas, shops, government, party offices, benches; each resident has a routine.
 - [ ] Expand city streets, coherent block geometry, more buildings, distinct neighborhood landmarks and visual polish.
 - [ ] Make citizen circles represent residents consistently, with grouping/interaction and readable activity state.
