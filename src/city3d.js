@@ -73,6 +73,13 @@ const blockCenters=[
 [-34,28],[-23,28],[-14,28],[0,28],[7,28],[24,28],[36,28],
 [-32,38],[-22,38],[-12,38],[0,38],[8,38],[23,38],[35,38]
 ];
+const partyHeadquarters=[
+{name:'Развитие',color:politicalColors[0],x:-22,z:-8},
+{name:'Социал-демократы',color:politicalColors[1],x:2,z:-40},
+{name:'Национальный союз',color:politicalColors[2],x:24,z:-8},
+{name:'Зелёные',color:politicalColors[3],x:-16,z:10},
+{name:'Гражданская партия',color:politicalColors[4],x:2,z:40}
+];
 const bldgs=[];
 function distanceToSegment(px,pz,a,b){const dx=b[0]-a[0],dz=b[1]-a[1],den=dx*dx+dz*dz||1;const t=Math.max(0,Math.min(1,((px-a[0])*dx+(pz-a[1])*dz)/den));return Math.hypot(px-(a[0]+dx*t),pz-(a[1]+dz*t))}
 function nearRoad(px,pz,buildingRadius=1.7){for(let pathIndex=0;pathIndex<avenuePaths.length;pathIndex++){const path=avenuePaths[pathIndex],width=pathIndex%3===0?3.6:2.8;for(let seg=0;seg<path.length-1;seg++){const safeDistance=width/2+.18+1.25+buildingRadius+.35;if(distanceToSegment(px,pz,path[seg],path[seg+1])<safeDistance)return true}}return false}
@@ -94,13 +101,7 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
  });
 });
 // Political party headquarters: distinct landmarks placed in city blocks, not on the road corridors.
-const partyHeadquarters=[
-{name:'Развитие',color:politicalColors[0],x:-22,z:-8},
-{name:'Социал-демократы',color:politicalColors[1],x:2,z:-40},
-{name:'Национальный союз',color:politicalColors[2],x:24,z:-8},
-{name:'Зелёные',color:politicalColors[3],x:-16,z:10},
-{name:'Гражданская партия',color:politicalColors[4],x:2,z:40}
-];
+
 partyHeadquarters.forEach((hq,i)=>{
  const baseMat=new THREE.MeshStandardMaterial({color:'#253443',roughness:.8});
  const colorMat=new THREE.MeshStandardMaterial({color:hq.color,roughness:.5,emissive:hq.color,emissiveIntensity:.18});
