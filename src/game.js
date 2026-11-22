@@ -176,7 +176,20 @@
   const intro=document.createElement('p');intro.textContent='Выберите инициативу. Партии голосуют согласно своему идеологическому курсу.';panel.appendChild(intro);
   const list=document.createElement('div');panel.appendChild(list);
   const close=document.createElement('button');close.textContent='Закрыть';close.onclick=()=>modal.remove();panel.appendChild(close);
-  catalog.forEach(([category,items])=>{const section=document.createElement('section');section.style.cssText='border-top:1px solid #283748;padding:12px 0';const h=document.createElement('h3');h.textContent=category;section.appendChild(h);items.forEach(([name,alignment])=>{const btn=document.createElement('button');btn.textContent=name+' · '+(alignment<0?'Левый курс '+alignment:alignment>0?'Правый курс +'+alignment:'Центр');btn.style.cssText='display:block;width:100%;text-align:left;margin:5px 0;padding:10px';btn.onclick=()=>{modal.remove();popup('Голос партии игрока · '+name,'Выберите позицию вашей партии. Остальные партии голосуют по идеологии.',[{label:'За',onClick:()=>sendHostAction({type:'law',name,alignment,playerVote:'yes'})},{label:'Против',onClick:()=>sendHostAction({type:'law',name,alignment,playerVote:'no'})},{label:'Воздержаться',onClick:()=>sendHostAction({type:'law',name,alignment,playerVote:'abstain'})}])};section.appendChild(btn)});list.appendChild(section)});
+  catalog.forEach(([category,items])=>{
+   const section=document.createElement('section');section.style.cssText='border-top:1px solid #283748;padding:12px 0';
+   const h=document.createElement('h3');h.textContent=category;section.appendChild(h);
+   items.forEach(([name,alignment])=>{
+    const btn=document.createElement('button');btn.textContent=name+' · '+(alignment<0?'Левый курс '+alignment:alignment>0?'Правый курс +'+alignment:'Центр');btn.style.cssText='display:block;width:100%;text-align:left;margin:5px 0;padding:10px';
+    btn.onclick=()=>{
+     modal.remove();
+     const votes=[{label:'За',onClick:()=>sendHostAction({type:'law',name,alignment,playerVote:'yes'})},{label:'Против',onClick:()=>sendHostAction({type:'law',name,alignment,playerVote:'no'})},{label:'Воздержаться',onClick:()=>sendHostAction({type:'law',name,alignment,playerVote:'abstain'})}];
+     popup('Голос партии игрока · '+name,'Выберите позицию вашей партии. Остальные партии голосуют по идеологии.',votes);
+    };
+    section.appendChild(btn);
+   });
+   list.appendChild(section);
+  });
   modal.appendChild(panel);document.body.appendChild(modal);
  });
  // Real-time calendar: a game month advances automatically every 60 seconds after the country is created.
