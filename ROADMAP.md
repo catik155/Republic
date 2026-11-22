@@ -34,6 +34,11 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Election results and 450-seat parliament diagram.
 - [x] Coalition offer after elections; accept, refuse and manually negotiate, or minority government.
 - [ ] Four-year election scheduling implemented; end-of-year triggering and modal flow still need gameplay verification.
+- [ ] Election cycle: first election currently triggers after the first month as a temporary simplified start; future campaign month should precede election day with rallies, debates, ads, polls, citizen ideology-based voting and changing preferences.
+- [ ] Election campaign must last a full political month rather than resolving in a single day/button press.
+- [x] Start new games with national budget and political capital at zero; treasury only accrues while a government coalition exists.
+- [x] Law voting includes a direct player-party choice (yes/no/abstain); other parties vote by ideology.
+- [ ] Allocate political capital and campaign funds per party; opposition parties must use their own resources, while the parliamentary majority controls government budget.
 - [ ] Improve coalition bargaining: cabinet/ministerial portfolios, policy promises, party acceptance, confidence votes.
 - [ ] Make laws materially affect economy, population, parties, districts, and future elections.
 - [ ] Add party leaders, personalities, priorities, campaign AI and event-driven rival actions.
