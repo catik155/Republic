@@ -52,8 +52,19 @@ districts.forEach((d,i)=>{
 const asphalt=new THREE.MeshStandardMaterial({color:'#222c36',roughness:1});
 const sidewalkMat=new THREE.MeshStandardMaterial({color:'#39444f',roughness:1});
 function road(x1,z1,x2,z2,width=3.1){const len=Math.hypot(x2-x1,z2-z1);const m=new THREE.Mesh(new THREE.BoxGeometry(width,.12,len),asphalt);m.position.set((x1+x2)/2,.06,(z1+z2)/2);m.rotation.y=-Math.atan2(x2-x1,z2-z1);m.receiveShadow=true;city.add(m);const curbW=.4;for(const off of [-width/2-curbW/2,width/2+curbW/2]){const curb=new THREE.Mesh(new THREE.BoxGeometry(curbW,.15,len),sidewalkMat);curb.position.set((x1+x2)/2,.12,(z1+z2)/2);curb.rotation.y=m.rotation.y;city.add(curb)}}
-const avenues=[[-42,-18,42,-18],[-42,0,42,0],[-42,18,42,18],[-30,-43,-30,43],[-10,-43,-10,43],[12,-43,12,43],[31,-43,31,43]];
-avenues.forEach((a,i)=>road(...a,i%2===0?3.6:2.8));
+// Organic road plan: staggered arterials, angled links and short curved-like segmented streets.
+const avenuePaths=[
+[[-43,-20],[-28,-17],[-12,-21],[3,-16],[18,-19],[33,-16],[43,-20]],
+[[-43,1],[-27,4],[-12,0],[4,3],[20,0],[34,4],[43,1]],
+[[-40,20],[-25,17],[-9,22],[7,18],[22,21],[37,18],[43,20]],
+[[-31,-44],[-29,-27],[-33,-10],[-28,8],[-32,24],[-29,43]],
+[[-10,-43],[-7,-26],[-12,-9],[-7,9],[-11,26],[-8,43]],
+[[13,-43],[17,-25],[11,-8],[16,10],[12,26],[16,43]],
+[[32,-43],[28,-26],[34,-8],[29,10],[35,27],[31,43]],
+[[-43,-34],[-31,-28],[-18,-31],[-4,-28],[12,-31],[27,-27],[43,-34]],
+[[-42,34],[-29,29],[-15,33],[0,29],[16,34],[31,30],[43,34]]
+];
+avenuePaths.forEach((path,i)=>path.slice(0,-1).forEach((p,j)=>road(p[0],p[1],path[j+1][0],path[j+1][1],i%3===0?3.6:2.8)));
 // City block/building placement: deterministic, fixed seed list, no random map generation.
 const blockCenters=[
 [-35,-28],[-25,-28],[-15,-27],[-2,-27],[7,-27],[24,-27],[36,-27],
@@ -63,7 +74,9 @@ const blockCenters=[
 [-32,38],[-22,38],[-12,38],[0,38],[8,38],[23,38],[35,38]
 ];
 const bldgs=[];
-blockCenters.forEach(([bx,bz],idx)=>{
+blockCenters.forEach(([baseX,baseZ],idx)=>{
+ // Stable pseudo-random offsets vary block placements from one another without moving them onto road edges.
+ const bx=baseX+Math.sin(idx*12.9898)*1.6,bz=baseZ+Math.cos(idx*7.233)*1.5;
  const district=districts.find(d=>pointInPolygon([bx,bz],d.pts))||districts[4];
  // block groups with controlled offsets, avoid randomness entirely
  const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9]];
