@@ -136,7 +136,7 @@ for(let k=0;k<90;k++){
  const person=new THREE.Group(),body=new THREE.Mesh(bodyGeo,material),head=new THREE.Mesh(headGeo,material);
  body.position.y=.38;head.position.y=.68;person.add(body,head);person.position.y=.02;people.add(person);
  const target=pickNextNode(start,-1);
- pedestrianRecords.push({dot:person,node:start,previous:-1,target,progress:Math.random(),speed:.7+Math.random()*.65,side:(k%2?-.28:.28),phase:Math.random()*Math.PI*2});
+ pedestrianRecords.push({dot:person,node:start,previous:-1,target,progress:Math.random(),speed:.7+Math.random()*.65,side:(k%2?-1:1),phase:Math.random()*Math.PI*2});
 }
 function movePedestrians(time){pedestrianRecords.forEach(p=>{
  const a=walkNodes[p.node],b=walkNodes[p.target];
@@ -145,7 +145,7 @@ function movePedestrians(time){pedestrianRecords.forEach(p=>{
  const t=p.progress, x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
  // Gentle lateral sway and a small random drift so walking doesn't look like a rigid line.
  const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;
- const sway=Math.sin(time*1.6+p.phase)*.12+p.side;
+ const sway=p.side*2.1+Math.sin(time*1.6+p.phase)*.12;
  p.dot.position.set(x-dz/len*sway,.02,z+dx/len*sway);
  p.dot.rotation.y=Math.atan2(dx,dz);
 })}
