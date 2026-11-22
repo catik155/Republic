@@ -33,7 +33,10 @@ This document tracks the game direction requested by the player across earlier d
 ## Political simulation
 - [x] Multiple parties, support, ideology and colors; AI opponents act independently.
 - [x] Campaign action choices: rally, media campaign, resident outreach.
-- [x] Laws with party ideology weighted votes.
+- [x] Laws with party ideology weighted votes and visual circular vote-result breakdown (yes/no/abstain); 226-seat threshold.
+- [x] Autonomous rival party law proposals are periodically introduced and voted on; accepted initiatives apply small policy effects.
+- [x] Coalition suggestions now prioritize parties ideologically closest to the election winner, using seats as tie-breaker.
+- [ ] Expand ideology system beyond a single left/right scale into detailed political families and issue-based platforms.
 - [x] Stability, unrest, inflation, unemployment, budget, population, monthly income/expenses.
 - [x] Crisis events and protests, with choices and consequences.
 - [x] Election results and 450-seat parliament diagram.
