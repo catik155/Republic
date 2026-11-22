@@ -89,7 +89,7 @@ function nearRoad(px,pz,buildingRadius=1.7){for(let pathIndex=0;pathIndex<avenue
 blockCenters.forEach(([baseX,baseZ],idx)=>{
  const bx=baseX+Math.sin(idx*12.9898)*1.6,bz=baseZ+Math.cos(idx*7.233)*1.5;
  const district=districts.find(d=>pointInPolygon([bx,bz],d.pts))||districts[4];
- const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9],[-4.0,-2.8],[4.0,-2.6],[-3.8,3.7],[4.1,3.8]];
+ const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9],[-4.0,-2.8],[4.0,-2.6],[-3.8,3.7],[4.1,3.8],[-5.2,0],[5.2,0],[0,-5.2],[0,5.2]];
  variations.forEach(([dx,dz],k)=>{
   const x=bx+dx,z=bz+dz;if(Math.abs(x)>41||Math.abs(z)>43)return;
   let floors=1+((idx*3+k*5)%6);if(district.type==='business')floors+=3;if(district.type==='industrial')floors=1+((idx+k)%3);
