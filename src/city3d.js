@@ -126,7 +126,7 @@ bldgs.forEach((b,bi)=>{
   const canopyColors=['#526d83','#80634b','#4c776e','#76596c'];
   const canopyMat=new THREE.MeshStandardMaterial({color:canopyColors[bi%canopyColors.length],roughness:.72});
   const canopy=new THREE.Mesh(new THREE.BoxGeometry(b.w+.22,.24,.72),canopyMat);canopy.position.set(b.x,Math.min(2.15,b.floors*1.15),b.z-b.h/2-.42);canopy.castShadow=true;city.add(canopy);
-  for(const dx of [-b.w*.34,b.w*.34]){const support=new THREE.Mesh(new THREE.BoxGeometry(.08,.72,.08),lampMetal);support.position.set(b.x+dx,1.5,b.z-b.h/2-.62);city.add(support)}
+  for(const dx of [-b.w*.34,b.w*.34]){const supportMat=new THREE.MeshStandardMaterial({color:'#344553',roughness:.7});const support=new THREE.Mesh(new THREE.BoxGeometry(.08,.72,.08),supportMat);support.position.set(b.x+dx,1.5,b.z-b.h/2-.62);city.add(support)}
  }
  if(b.kind==='civic'){
   const columnMat=new THREE.MeshStandardMaterial({color:'#73818b',roughness:.82});
