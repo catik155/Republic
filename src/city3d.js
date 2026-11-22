@@ -151,7 +151,7 @@ for(let k=0;k<90;k++){
 function movePedestrians(time){
  pedestrianRecords.forEach(p=>{
   const a=walkNodes[p.node],b=walkNodes[p.target];
-  p.progress+=p.speed;
+  p.progress+=p.speed*Math.max(0,time-(p.lastTime??time))*1.6;p.lastTime=time;
   if(p.progress>=1){p.previous=p.node;p.node=p.target;p.target=pickNextNode(p.node,p.previous,p.seed+Math.floor(time*3));p.progress=0;p.offset=seededValue(p.seed+time*2)*2.4-1.2}
   const t=p.progress,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
   const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;
