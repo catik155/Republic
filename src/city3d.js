@@ -131,20 +131,22 @@ const walkNodes=[[-40,-19],[-27,-17],[-14,-20],[0,-16],[14,-18],[29,-17],[40,-20
 const walkLinks=[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[7,8],[8,9],[9,10],[10,11],[11,12],[12,13],[14,15],[15,16],[16,17],[17,18],[18,19],[20,21],[21,22],[22,23],[23,24],[0,7],[1,8],[2,9],[3,10],[4,11],[5,12],[7,14],[8,15],[9,16],[10,17],[11,18],[12,19],[14,20],[15,21],[16,22],[17,23],[18,24]];
 const walkAdj=walkNodes.map(()=>[]);
 walkLinks.forEach(([a,b])=>{walkAdj[a].push(b);walkAdj[b].push(a)});
-function pickNextNode(current,previous){const options=walkAdj[current].filter(i=>i!==previous);return options.length?options[Math.floor(Math.random()*options.length)]:walkAdj[current][0]??current}
+// Stable per-agent random sequence: movement remains varied, but reloads reproduce the same city.
+function seededValue(seed){const n=Math.sin(seed*127.1+311.7)*43758.5453;return n-Math.floor(n)}
+function pickNextNode(current,previous,seed=0){const options=walkAdj[current].filter(i=>i!==previous);return options.length?options[Math.floor(seededValue(seed+current*17.3)*options.length)]:walkAdj[current][0]??current}
 for(let k=0;k<90;k++){
  const start=k%walkNodes.length, material=new THREE.MeshStandardMaterial({color:pedestrianPalette[k%5],roughness:.8});
  const person=new THREE.Group(),body=new THREE.Mesh(bodyGeo,material),head=new THREE.Mesh(headGeo,material);
  body.position.y=.38;head.position.y=.68;person.add(body,head);
  const limbs=[];for(const side of [-1,1]){const armPivot=new THREE.Group();armPivot.position.set(side*.14,.48,0);const arm=new THREE.Mesh(armGeo,material);arm.position.y=-.13;armPivot.add(arm);person.add(armPivot);limbs.push(armPivot);const legPivot=new THREE.Group();legPivot.position.set(side*.07,.22,0);const leg=new THREE.Mesh(legGeo,material);leg.position.y=-.13;legPivot.add(leg);person.add(legPivot);limbs.push(legPivot)}
  person.position.y=.02;people.add(person);
- const target=pickNextNode(start,-1);
- pedestrianRecords.push({dot:person,limbs,node:start,previous:-1,target,progress:Math.random(),speed:.7+Math.random()*.65,side:(k%2?-1:1),phase:Math.random()*Math.PI*2});
+ const target=pickNextNode(start,-1,k+91);
+ pedestrianRecords.push({dot:person,limbs,node:start,previous:-1,target,progress:seededValue(k+5)*.45,speed:.7+seededValue(k+19)*.65,side:(k%2?-1:1),phase:seededValue(k+37)*Math.PI*2,seed:k});
 }
 function movePedestrians(time){pedestrianRecords.forEach(p=>{
  const a=walkNodes[p.node],b=walkNodes[p.target];
  p.progress+=p.speed*.004;
- if(p.progress>=1){p.previous=p.node;p.node=p.target;p.target=pickNextNode(p.node,p.previous);p.progress=0}
+ if(p.progress>=1){p.previous=p.node;p.node=p.target;p.target=pickNextNode(p.node,p.previous,p.seed+Math.floor(time*10));p.progress=0}
  const t=p.progress, x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
  // Gentle lateral sway and a small random drift so walking doesn't look like a rigid line.
  const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;
