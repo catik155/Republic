@@ -52,7 +52,7 @@
     const total=state.support.reduce((x,y)=>x+y,0);state.support=state.support.map(v=>v*100/total);
     log('Кампания партии «'+state.partyNames[idx]+'»: поддержка выросла, сейчас '+state.support[idx].toFixed(1)+'%.');
   }else if(a.type==='law'){
-    state.lawCount++;const seats=allocateSeats(state.support);let yes=0,no=0,abstain=0;
+    state.lawCount++;state.politicalCapital=Math.max(0,(state.politicalCapital??0)-2);const seats=allocateSeats(state.support);let yes=0,no=0,abstain=0;
     const alignment=Math.max(-2,Math.min(2,Number(a.alignment)||0));
     state.support.forEach((v,i)=>{const distance=Math.abs((state.ideology[i]||0)-alignment);if(distance<=.5)yes+=seats[i];else if(distance<=1.5)abstain+=seats[i];else no+=seats[i]});
     log('🏛 Законопроект «'+a.name+'» '+(yes>=226?'принят':'отклонён')+'. За: '+yes+' · Против: '+no+' · Воздержались: '+abstain+' из 450.');
