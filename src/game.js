@@ -1,7 +1,7 @@
 // Republic Alpha 0.20.0 — local political simulation + PeerJS multiplayer MVP.
 (() => {
  const $=id=>document.getElementById(id);
- const state={name:'Республика',year:2026,month:1,parties:8,ai:6,difficulty:'Средняя',campaigns:0,stability:72,budget:284.7,people:8.7,politicalCapital:12,unrest:18,lawCount:0,elections:0,coalition:[],governmentConfidence:0,ideology:[1,-1,2,1,0,-1,2,-2,0,-1,1,0,1,0,-1,1,2,-2,0,1],support:[32,28,20,12,8],partyNames:['Развитие','Социал-демократы','Национальный союз','Зелёные','Гражданская партия'],partyColors:['#3e83e6','#bd4f5c','#c6a14b','#8962bf','#6d8395'],chronicle:'',hostName:'',players:[],minPlayers:2,maxPlayers:8};
+ const state={name:'Республика',year:2026,month:1,parties:8,ai:6,difficulty:'Средняя',campaigns:0,stability:72,budget:284.7,people:8.7,politicalCapital:12,unrest:18,inflation:4.2,unemployment:6.1,taxRate:22,monthlyIncome:0,monthlyExpenses:0,lawCount:0,elections:0,coalition:[],governmentConfidence:0,ideology:[1,-1,2,1,0,-1,2,-2,0,-1,1,0,1,0,-1,1,2,-2,0,1],support:[32,28,20,12,8],partyNames:['Развитие','Социал-демократы','Национальный союз','Зелёные','Гражданская партия'],partyColors:['#3e83e6','#bd4f5c','#c6a14b','#8962bf','#6d8395'],chronicle:'',hostName:'',players:[],minPlayers:2,maxPlayers:8};
  const months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
  const allocateSeats=(values,totalSeats=450)=>{const sum=values.reduce((a,b)=>a+b,0)||1;const exact=values.map(v=>Math.max(0,v)*totalSeats/sum);const seats=exact.map(Math.floor);let left=totalSeats-seats.reduce((a,b)=>a+b,0);const order=exact.map((v,i)=>({i,r:v-seats[i]})).sort((a,b)=>b.r-a.r);for(let k=0;k<left;k++)seats[order[k%order.length].i]++;return seats;};
  let peer=null,hostConnection=null,connections=[],isHost=false,networked=false,roomCode='',netReady=false;
@@ -12,8 +12,8 @@
  const ideologyLabel=v=>v<=-2?'Радикально левый':v===-1?'Левый':v===0?'Центрист':v===1?'Правый':'Радикально правый';const renderPartyPanel=()=>{const box=document.querySelector('.left .section:nth-of-type(3)');if(!box)return;box.innerHTML='<h3>Партии</h3>'+state.partyNames.map((n,i)=>'<div class="rowstat" title="Идеологический курс: '+ideologyLabel(state.ideology[i]||0)+'"><span style="color:'+state.partyColors[i]+'">● '+n+' <small style="opacity:.7">'+ideologyLabel(state.ideology[i]||0)+'</small></span><b>'+Math.round(state.support[i]||0)+'%</b></div>').join('');};
  const render=()=>{renderPartyPanel();if($('politicalCapital'))$('politicalCapital').textContent=Math.round(state.politicalCapital??0);if($('unrestTop'))$('unrestTop').textContent=Math.round(state.unrest??0)+'%';if($('yearTop'))$('yearTop').textContent=state.year;if($('monthTop'))$('monthTop').textContent=months[state.month-1];if($('stabilityTop'))$('stabilityTop').textContent=Math.round(state.stability)+'%';if($('budgetTop'))$('budgetTop').textContent='₽'+state.budget.toFixed(1)+' млрд';if($('populationTop'))$('populationTop').textContent=state.people.toFixed(2)+' млн';if($('yearTop'))$('yearTop').textContent=state.year;};
  const save=()=>{try{localStorage.setItem('republic-save-v020',JSON.stringify(state))}catch{}};
- const serialize=()=>({name:state.name,year:state.year,month:state.month,parties:state.parties,ai:state.ai,difficulty:state.difficulty,campaigns:state.campaigns,stability:state.stability,budget:state.budget,people:state.people,lawCount:state.lawCount,elections:state.elections,coalition:state.coalition,governmentConfidence:state.governmentConfidence,politicalCapital:state.politicalCapital,unrest:state.unrest,ideology:state.ideology,support:state.support,partyNames:state.partyNames,partyColors:state.partyColors,chronicle:state.chronicle,players:state.players,hostName:state.hostName,minPlayers:state.minPlayers,maxPlayers:state.maxPlayers});
- const restore=s=>{if(!s)return;Object.assign(state,s);state.politicalCapital=Number(state.politicalCapital??12);state.unrest=Number(state.unrest??18);if(!Array.isArray(state.ideology)||state.ideology.length!==state.partyNames.length)state.ideology=state.partyNames.map((_,i)=>[1,-1,2,1,0,-1,2,-2,0,-1,1,0,1,0,-1,1,2,-2,0,1][i%20]);render();if(state.chronicle)log(state.chronicle)};
+ const serialize=()=>({name:state.name,year:state.year,month:state.month,parties:state.parties,ai:state.ai,difficulty:state.difficulty,campaigns:state.campaigns,stability:state.stability,budget:state.budget,people:state.people,lawCount:state.lawCount,elections:state.elections,coalition:state.coalition,governmentConfidence:state.governmentConfidence,politicalCapital:state.politicalCapital,unrest:state.unrest,inflation:state.inflation,unemployment:state.unemployment,taxRate:state.taxRate,monthlyIncome:state.monthlyIncome,monthlyExpenses:state.monthlyExpenses,ideology:state.ideology,support:state.support,partyNames:state.partyNames,partyColors:state.partyColors,chronicle:state.chronicle,players:state.players,hostName:state.hostName,minPlayers:state.minPlayers,maxPlayers:state.maxPlayers});
+ const restore=s=>{if(!s)return;Object.assign(state,s);state.politicalCapital=Number(state.politicalCapital??12);state.unrest=Number(state.unrest??18);state.inflation=Number(state.inflation??4.2);state.unemployment=Number(state.unemployment??6.1);state.taxRate=Number(state.taxRate??22);state.monthlyIncome=Number(state.monthlyIncome??0);state.monthlyExpenses=Number(state.monthlyExpenses??0);if(!Array.isArray(state.ideology)||state.ideology.length!==state.partyNames.length)state.ideology=state.partyNames.map((_,i)=>[1,-1,2,1,0,-1,2,-2,0,-1,1,0,1,0,-1,1,2,-2,0,1][i%20]);render();if(state.chronicle)log(state.chronicle)};
  const send=(conn,obj)=>{try{if(conn&&conn.open)conn.send(obj)}catch{}};
  const sendHostAction=action=>{if(isHost){if(state.players.length<state.minPlayers){toast('Нужно подключить минимум '+state.minPlayers+' игроков. Сейчас: '+state.players.length);return}applyAction(action,true);broadcastState()}else if(networked){if(hostConnection?.open)send(hostConnection,{type:'action',action});else toast('Сначала дождись подключения к хосту.')}else applyAction(action,false)};
  const broadcastState=()=>connections.forEach(c=>send(c,{type:'state',state:serialize()}));
@@ -24,7 +24,7 @@
   if(a.type==='advance'){
     state.month++;if(state.month>12){state.month=1;state.year++}
     state.stability=Math.max(15,Math.min(95,state.stability+(Math.random()-.48)*1.6));state.politicalCapital=Math.max(0,Math.min(100,(state.politicalCapital??12)+.8+(state.governmentConfidence||0)*.015));state.unrest=Math.max(0,Math.min(100,(state.unrest??18)+(state.stability<42?3.5:state.stability>62?-1.5:.4)+(Math.random()-.5)*2));
-    const monthlyBalance=(state.people*.34)+(state.stability/100*.7)-1.9;state.budget=Math.max(0,state.budget+monthlyBalance+(Math.random()-.5)*.8);state.people=Math.max(1,state.people+(Math.random()-.48)*.018);
+    const taxBase=state.people*(state.taxRate/22)*.34;const stabilityDividend=(state.stability/100)*.7;const upkeep=1.9+(state.unemployment/10)*.12;state.monthlyIncome=taxBase+stabilityDividend;state.monthlyExpenses=upkeep;const monthlyBalance=state.monthlyIncome-state.monthlyExpenses;state.budget=Math.max(0,state.budget+monthlyBalance+(Math.random()-.5)*.8);state.unemployment=Math.max(2,Math.min(22,state.unemployment+(Math.random()-.48)*.22+(state.unrest>65?.08:0)));state.inflation=Math.max(-1,Math.min(25,state.inflation+(Math.random()-.5)*.12+(state.budget<80?.04:0)));state.people=Math.max(1,state.people+(Math.random()-.48)*.018);
     state.support=state.support.map(v=>Math.max(1,Math.min(65,v+(Math.random()-.5)*.5)));
     const total=state.support.reduce((x,y)=>x+y,0);state.support=state.support.map(v=>v*100/total);
     // Rival parties make autonomous monthly decisions: campaigns, policy deals, and pressure.
@@ -93,10 +93,15 @@
   if(label==='Карта'){toast('Карта города');return}
   if(label==='Законы'){$('law')?.click();return}
   if(label==='Экономика')popup('Экономика и бюджет',`Бюджет: ${state.budget.toFixed(1)} млрд
+Доход/месяц: ${state.monthlyIncome.toFixed(2)} млрд
+Расходы/месяц: ${state.monthlyExpenses.toFixed(2)} млрд
+Налоговая ставка: ${state.taxRate}%
+Инфляция: ${state.inflation.toFixed(1)}%
+Безработица: ${state.unemployment.toFixed(1)}%
 Население: ${state.people.toFixed(2)} млн
 Стабильность: ${Math.round(state.stability)}%
 
-Финансовый баланс меняется каждый месяц. Кампании и политические решения влияют на поддержку и состояние страны.`);
+Экономические показатели меняются автоматически, вместе с календарём.`);
   else if(label==='Политика')popup('Политическая ситуация',`Правительственная коалиция: ${state.coalition.length?state.coalition.map(i=>state.partyNames[i]).join(' + '):'не сформирована'}
 Доверие кабинету: ${state.governmentConfidence}%
 Выборы проведены: ${state.elections}
@@ -126,7 +131,7 @@
    if(networked&&!isHost)return;
    applyAction({type:'advance',automatic:true},false);
    if(isHost&&networked)broadcastState();
-  },60000);
+  },45000);
  });
  try{const saved=JSON.parse(localStorage.getItem('republic-save-v020')||'null');if(saved)restore(saved)}catch{}
  window.addEventListener('beforeunload',()=>{try{peer?.destroy()}catch{}});
