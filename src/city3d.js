@@ -121,6 +121,18 @@ bldgs.forEach((b,bi)=>{
    if(sideWindowCount<facadeWindowSide.count){const z=b.z+(c-(cols-1)/2)*.62;windowDummy.position.set(b.x+b.w/2+.045,y,z);windowDummy.updateMatrix();facadeWindowSide.setMatrixAt(sideWindowCount++,windowDummy.matrix);}
   }
  }
+ // Deterministic district storefront canopies and civic entrance details.
+ if(b.kind==='business'){
+  const canopyColors=['#526d83','#80634b','#4c776e','#76596c'];
+  const canopyMat=new THREE.MeshStandardMaterial({color:canopyColors[bi%canopyColors.length],roughness:.72});
+  const canopy=new THREE.Mesh(new THREE.BoxGeometry(b.w+.22,.24,.72),canopyMat);canopy.position.set(b.x,Math.min(2.15,b.floors*1.15),b.z-b.h/2-.42);canopy.castShadow=true;city.add(canopy);
+  for(const dx of [-b.w*.34,b.w*.34]){const support=new THREE.Mesh(new THREE.BoxGeometry(.08,.72,.08),lampMetal);support.position.set(b.x+dx,1.5,b.z-b.h/2-.62);city.add(support)}
+ }
+ if(b.kind==='civic'){
+  const columnMat=new THREE.MeshStandardMaterial({color:'#73818b',roughness:.82});
+  for(const dx of [-b.w*.3,0,b.w*.3]){const column=new THREE.Mesh(new THREE.BoxGeometry(.18,1.7,.18),columnMat);column.position.set(b.x+dx,1.02,b.z-b.h/2-.22);column.castShadow=true;city.add(column)}
+  const lintel=new THREE.Mesh(new THREE.BoxGeometry(b.w*.72,.22,.26),columnMat);lintel.position.set(b.x,1.92,b.z-b.h/2-.22);city.add(lintel);
+ }
  // Deterministic rooftop HVAC/vent details on selected buildings.
  if(bi%4===0){const roofY=b.floors*1.25+.32;const ventMat=new THREE.MeshStandardMaterial({color:'#293744',roughness:.88});const vent=new THREE.Mesh(new THREE.BoxGeometry(.65,.45,.55),ventMat);vent.position.set(b.x+b.w*.22,roofY,b.z+b.h*.12);vent.castShadow=true;city.add(vent);const ventCap=new THREE.Mesh(new THREE.BoxGeometry(.75,.08,.65),new THREE.MeshStandardMaterial({color:'#5c6a75',roughness:.8}));ventCap.position.set(vent.position.x,roofY+.25,vent.position.z);city.add(ventCap);}
 });
