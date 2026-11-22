@@ -24,7 +24,7 @@
   if(a.type==='advance'){
     state.month++;if(state.month>12){state.month=1;state.year++}
     state.stability=Math.max(15,Math.min(95,state.stability+(Math.random()-.48)*1.6));
-    state.budget=Math.max(0,state.budget+(.2+(Math.random()-.45)*1.3));
+    const monthlyBalance=(state.people*.34)+(state.stability/100*.7)-1.9;state.budget=Math.max(0,state.budget+monthlyBalance+(Math.random()-.5)*.8);state.people=Math.max(1,state.people+(Math.random()-.48)*.018);
     state.support=state.support.map(v=>Math.max(1,Math.min(65,v+(Math.random()-.5)*.5)));
     const total=state.support.reduce((x,y)=>x+y,0);state.support=state.support.map(v=>v*100/total);
     log('📅 '+months[state.month-1]+' '+state.year+' · экономика, рейтинг правительства и общественное настроение обновлены.');
