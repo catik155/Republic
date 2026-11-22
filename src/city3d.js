@@ -77,11 +77,11 @@ const blockCenters=[
 [-32,38],[-22,38],[-12,38],[0,38],[8,38],[23,38],[35,38]
 ];
 const partyHeadquarters=[
-{name:'Развитие',color:politicalColors[0],x:-22,z:-8},
-{name:'Социал-демократы',color:politicalColors[1],x:2,z:-40},
-{name:'Национальный союз',color:politicalColors[2],x:24,z:-8},
-{name:'Зелёные',color:politicalColors[3],x:-16,z:10},
-{name:'Гражданская партия',color:politicalColors[4],x:2,z:40}
+{name:'Развитие',color:politicalColors[0],x:-20,z:-20},
+{name:'Социал-демократы',color:politicalColors[1],x:20,z:-20},
+{name:'Национальный союз',color:politicalColors[2],x:20,z:20},
+{name:'Зелёные',color:politicalColors[3],x:-20,z:20},
+{name:'Гражданская партия',color:politicalColors[4],x:-20,z:0}
 ];
 const bldgs=[];
 function distanceToSegment(px,pz,a,b){const dx=b[0]-a[0],dz=b[1]-a[1],den=dx*dx+dz*dz||1;const t=Math.max(0,Math.min(1,((px-a[0])*dx+(pz-a[1])*dz)/den));return Math.hypot(px-(a[0]+dx*t),pz-(a[1]+dz*t))}
@@ -105,10 +105,9 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
 });
 // Political party headquarters: distinct landmarks placed in city blocks, not on the road corridors.
 
-const placedHQ=[];function safeHQSpot(hq){const offsets=[[0,0],[0,8],[8,0],[-8,0],[0,-8],[8,8],[-8,8],[8,-8],[-8,-8],[0,12],[12,0],[-12,0],[0,-12],[10,6],[-10,6],[10,-6],[-10,-6]];const clearSpot=(x,z)=>Math.abs(x)<=38&&Math.abs(z)<=38&&!nearRoad(x,z,3.3)&&Math.hypot(x,z)>=9&&!placedHQ.some(p=>Math.hypot(x-p.x,z-p.z)<10)&&!bldgs.some(b=>Math.abs(x-b.x)<b.w/2+3.4&&Math.abs(z-b.z)<b.h/2+3.1);for(const [dx,dz] of offsets){const x=hq.x+dx,z=hq.z+dz;if(!clearSpot(x,z))continue;hq.x=x;hq.z=z;placedHQ.push({x,z});return true}const fallback=[[-36,-36],[36,-36],[-36,36],[36,36],[-20,20],[20,-20],[-20,-20],[20,20]];for(const [x,z] of fallback){if(clearSpot(x,z)){hq.x=x;hq.z=z;placedHQ.push({x,z});return true}}return false}
+// HQs use deliberately reserved block-center lots away from street corridors; nearby ordinary buildings are excluded during city placement.
 partyHeadquarters.forEach((hq,i)=>{
- safeHQSpot(hq);
- const baseMat=new THREE.MeshStandardMaterial({color:'#253443',roughness:.8});
+  const baseMat=new THREE.MeshStandardMaterial({color:'#253443',roughness:.8});
  const colorMat=new THREE.MeshStandardMaterial({color:hq.color,roughness:.5,emissive:hq.color,emissiveIntensity:.18});
  const base=new THREE.Mesh(new THREE.BoxGeometry(5.6,.55,4.8),baseMat);base.position.set(hq.x,.28,hq.z);base.castShadow=true;base.receiveShadow=true;city.add(base);
  const main=new THREE.Mesh(new THREE.BoxGeometry(4.4,4.2,3.7),new THREE.MeshStandardMaterial({color:['#526172','#46586a','#596571','#485d60','#566270'][i],roughness:.78}));
