@@ -26,15 +26,15 @@ const sun=new THREE.DirectionalLight(0xb8d0e9,2.6);sun.position.set(-35,55,25);s
 const city=new THREE.Group();scene.add(city);
 const floor=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:'#101923',roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.5;floor.receiveShadow=true;city.add(floor);
 const districts=[
-{name:'Старый город',type:'civic',pts:[[-34,-23],[-19,-30],[-7,-25],[-9,-11],[-24,-7],[-37,-13]],color:'#526e83'},
-{name:'Центральный',type:'business',pts:[[-8,-29],[11,-30],[19,-20],[16,-8],[0,-7],[-12,-15]],color:'#557866'},
-{name:'Северный',type:'residential',pts:[[19,-26],[36,-24],[41,-10],[35,-1],[22,-4],[17,-14]],color:'#607b8a'},
-{name:'Речной',type:'residential',pts:[[-39,-4],[-23,-6],[-17,7],[-22,21],[-35,22],[-42,10]],color:'#52796f'},
-{name:'Промышленный',type:'industrial',pts:[[-17,-6],[4,-7],[12,6],[8,22],[-9,25],[-19,12]],color:'#65746d'},
-{name:'Южный',type:'residential',pts:[[14,-4],[35,-2],[41,11],[35,25],[19,22],[10,10]],color:'#54786d'},
-{name:'Западный',type:'residential',pts:[[-29,23],[-13,22],[-6,33],[-12,42],[-26,42],[-35,32]],color:'#687d6a'},
-{name:'Восточный',type:'residential',pts:[[-9,25],[9,23],[16,34],[10,43],[-7,42],[-15,33]],color:'#617a6e'},
-{name:'Пригород',type:'residential',pts:[[17,25],[34,24],[41,34],[35,43],[20,43],[13,34]],color:'#4d7167'}
+{name:'Старый город',type:'civic',pts:[[-42,-42],[-14,-42],[-14,-14],[-42,-14]],color:'#526e83'},
+{name:'Центральный',type:'business',pts:[[-14,-42],[14,-42],[14,-14],[-14,-14]],color:'#557866'},
+{name:'Северный',type:'residential',pts:[[14,-42],[42,-42],[42,-14],[14,-14]],color:'#607b8a'},
+{name:'Речной',type:'residential',pts:[[-42,-14],[-14,-14],[-14,14],[-42,14]],color:'#52796f'},
+{name:'Промышленный',type:'industrial',pts:[[-14,-14],[14,-14],[14,14],[-14,14]],color:'#65746d'},
+{name:'Южный',type:'residential',pts:[[14,-14],[42,-14],[42,14],[14,14]],color:'#54786d'},
+{name:'Западный',type:'residential',pts:[[-42,14],[-14,14],[-14,42],[-42,42]],color:'#687d6a'},
+{name:'Восточный',type:'residential',pts:[[-14,14],[14,14],[14,42],[-14,42]],color:'#617a6e'},
+{name:'Пригород',type:'residential',pts:[[14,14],[42,14],[42,42],[14,42]],color:'#4d7167'}
 ];
 const politicalColors=['#3e83e6','#bd4f5c','#c6a14b','#8962bf','#6d8395'];
 let showDistricts=true, selectedDistrict=null;
@@ -120,7 +120,7 @@ const parkMat=new THREE.MeshStandardMaterial({color:'#233d32',roughness:1});
 const parkShapes=[[[-39,-33],[-34,-35],[-32,-30],[-35,-25],[-40,-26]],[[-4,-35],[2,-35],[5,-32],[1,-28],[-4,-30]],[[16,29],[20,27],[23,31],[21,36],[17,35]]];
 parkShapes.forEach(points=>{const g=new THREE.Shape();points.forEach(([x,z],i)=>i?g.lineTo(x,-z):g.moveTo(x,-z));g.closePath();const geom=new THREE.ShapeGeometry(g);geom.rotateX(-Math.PI/2);const m=new THREE.Mesh(geom,parkMat);m.position.y=.14;city.add(m)});
 function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,zi]=pts[i],[xj,zj]=pts[j];if(((zi>z)!=(zj>z))&&(x<(xj-xi)*(z-zi)/(zj-zi)+xi))inside=!inside}return inside}
-// Pedestrians are flat camera-facing dots, walking freely across the full roadway.
+// Pedestrians roam along connected road intersections, with gentle lateral weaving.
 const people=new THREE.Group();scene.add(people);
 const pedestrianPalette=['#4a91ff','#d35a66','#d9b65c','#a681df','#86a0b9'];
 const pedestrianRecords=[];
@@ -128,37 +128,14 @@ const walkNodes=[];const grid=[-30,-10,10,30];
 grid.forEach(z=>grid.forEach(x=>walkNodes.push([x,z])));
 const walkAdj=walkNodes.map(()=>[]);
 const walkLinks=[];
-for(let row=0;row<4;row++)for(let col=0;col<4;col++){
- const i=row*4+col;
- if(col<3)walkLinks.push([i,i+1]);
- if(row<3)walkLinks.push([i,i+4]);
-}
+for(let row=0;row<4;row++)for(let col=0;col<4;col++){const i=row*4+col;if(col<3)walkLinks.push([i,i+1]);if(row<3)walkLinks.push([i,i+4])}
 walkLinks.forEach(([a,b])=>{walkAdj[a].push(b);walkAdj[b].push(a)});
 function seededValue(seed){const n=Math.sin(seed*127.1+311.7)*43758.5453;return n-Math.floor(n)}
 function pickNextNode(current,previous,seed=0){const options=walkAdj[current].filter(i=>i!==previous);return options.length?options[Math.floor(seededValue(seed+current*17.3)*options.length)]:walkAdj[current][0]??current}
-function makeDotTexture(color){
- const c=document.createElement('canvas');c.width=64;c.height=64;const g=c.getContext('2d');
- g.beginPath();g.arc(32,32,25,0,Math.PI*2);g.fillStyle=color;g.fill();g.lineWidth=4;g.strokeStyle='#e8f0fa';g.stroke();
- g.beginPath();g.arc(32,32,7,0,Math.PI*2);g.fillStyle='#fff';g.fill();
- return new THREE.CanvasTexture(c);
-}
+function makeDotTexture(color){const c=document.createElement('canvas');c.width=64;c.height=64;const g=c.getContext('2d');g.beginPath();g.arc(32,32,25,0,Math.PI*2);g.fillStyle=color;g.fill();g.lineWidth=4;g.strokeStyle='#e8f0fa';g.stroke();g.beginPath();g.arc(32,32,7,0,Math.PI*2);g.fillStyle='#fff';g.fill();return new THREE.CanvasTexture(c)}
 const dotMaterials=pedestrianPalette.map(color=>new THREE.SpriteMaterial({map:makeDotTexture(color),transparent:true,depthWrite:false}));
-for(let k=0;k<90;k++){
- const start=k%walkNodes.length, dot=new THREE.Sprite(dotMaterials[k%5]);
- dot.scale.set(.95,.95,1);dot.position.y=.48;people.add(dot);
- pedestrianRecords.push({dot,node:start,previous:-1,target:pickNextNode(start,-1,k+91),progress:seededValue(k+5)*.45,speed:.12+seededValue(k+19)*.16,offset:seededValue(k+23)*2.2-1.1,phase:seededValue(k+37)*Math.PI*2,seed:k});
-}
-function movePedestrians(time){
- pedestrianRecords.forEach(p=>{
-  const a=walkNodes[p.node],b=walkNodes[p.target];
-  p.progress+=p.speed*Math.max(0,time-(p.lastTime??time))*1.6;p.lastTime=time;
-  if(p.progress>=1){p.previous=p.node;p.node=p.target;p.target=pickNextNode(p.node,p.previous,p.seed+Math.floor(time*3));p.progress=0;p.offset=seededValue(p.seed+time*2)*2.4-1.2}
-  const t=p.progress,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
-  const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;
-  // Offset is randomized within the full road width, not on a narrow sidewalk line.
-  p.dot.position.set(x-dz/len*p.offset,.48,z+dx/len*p.offset);
- });
-}
+for(let k=0;k<90;k++){const start=k%walkNodes.length,dot=new THREE.Sprite(dotMaterials[k%5]);dot.scale.set(.95,.95,1);dot.position.y=.48;people.add(dot);pedestrianRecords.push({dot,node:start,previous:-1,target:pickNextNode(start,-1,k+91),progress:seededValue(k+5)*.45,speed:.12+seededValue(k+19)*.16,offset:seededValue(k+23)*3.4-1.7,phase:seededValue(k+37)*Math.PI*2,seed:k,lastTime:0})}
+function movePedestrians(time){pedestrianRecords.forEach(p=>{const a=walkNodes[p.node],b=walkNodes[p.target];p.progress+=p.speed*Math.max(0,time-(p.lastTime??time))*1.6;p.lastTime=time;if(p.progress>=1){p.previous=p.node;p.node=p.target;p.target=pickNextNode(p.node,p.previous,p.seed+Math.floor(time*3));p.progress=0;p.offset=seededValue(p.seed+time*2)*3.4-1.7}const t=p.progress,dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;const wave=Math.sin(time*2.2+p.phase)*.42+Math.sin(time*4.1+p.phase*.7)*.13;const lateral=p.offset+wave;const x=a[0]+dx*t-dz/len*lateral,z=a[1]+dz*t+dx/len*lateral; p.dot.position.set(x,.48,z)})}
 const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*2-1;mouse.y=-((e.clientY-r.top)/r.height*2-1);raycaster.setFromCamera(mouse,camera);const hits=raycaster.intersectObjects(districtMeshes,false);if(hits.length){selectedDistrict=hits[0].object.userData.district;document.querySelector('#districtName').textContent=selectedDistrict.name;document.querySelector('#inspect').innerHTML=`<strong>${selectedDistrict.name}</strong><br>Район: ${selectedDistrict.type==='business'?'деловой':selectedDistrict.type==='industrial'?'промышленный':selectedDistrict.type==='civic'?'административный':'жилой'}<br>Население: ${(220+selectedDistrict.pts.length*86)} тыс.<br>Экономика: ${61+selectedDistrict.pts.length}%<br>Инфраструктура: ${54+selectedDistrict.pts.length*3}%<br>Экология: ${70-selectedDistrict.pts.length*2}%`;districtMeshes.forEach(m=>m.material.opacity=(m.userData.district===selectedDistrict)?0.85:0.56)}});
 function setLayer(id,fn){document.getElementById(id).addEventListener('change',fn)}
 setLayer('showPeople',()=>people.visible=document.getElementById('showPeople').checked);
