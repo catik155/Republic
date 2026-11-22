@@ -13,10 +13,14 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Densify building blocks; extend city floor/camera bounds.
 - [x] Residents have goal-directed street movement.
 - [ ] Basic residential lifecycle code exists (street destination → fade/inside → return), but door alignment and actual visible behavior still need browser verification.
-- [x] Pair encounters pause residents and show a conversation bubble.
+- [x] Pair encounters pause residents and show a conversation bubble; conversation rate, range and cooldown are adjustable in the city admin panel.
 - [ ] Fix house entrance alignment/door visibility and verify movement visually.
 - [x] Shortest-path routing on the street graph with cached distance maps; still requires visual verification and pedestrian avoidance refinements.
 - [ ] Expand destinations and routines (shops, government, party offices, benches, work, errands); park leisure stops with a short idle pause are implemented as a basic prototype.
+- [x] Increase pedestrian pool to 150; admin default displays 110, adjustable 90–150.
+- [x] Reduce casual conversations with distance gating, 12% encounter probability, short conversation durations, and 25-second individual cooldowns; adjustable in the admin panel.
+- [x] Add an in-game admin panel for pedestrian count and conversation behavior settings.
+- [x] Add automatic placement checks for party HQs against road corridors and building footprints, with admin-panel audit display.
 - [x] Add fixed park benches and small trees to the three static park spaces.
 - [ ] Expand city streets, coherent block geometry, more buildings, distinct neighborhood landmarks and visual polish.
 - [ ] Make citizen circles represent residents consistently, with grouping/interaction and readable activity state.
