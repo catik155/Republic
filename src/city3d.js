@@ -164,13 +164,23 @@ bldgs.forEach((b,bi)=>{
  if(b.kind==='business'){
   const canopyColors=['#526d83','#80634b','#4c776e','#76596c'];
   const canopyMat=new THREE.MeshStandardMaterial({color:canopyColors[bi%canopyColors.length],roughness:.72});
-  const canopy=new THREE.Mesh(new THREE.BoxGeometry(b.w+.22,.24,.72),canopyMat);canopy.position.set(b.x,Math.min(2.15,b.floors*1.15),b.z-b.h/2-.42);canopy.castShadow=true;city.add(canopy);
-  for(const dx of [-b.w*.34,b.w*.34]){const supportMat=new THREE.MeshStandardMaterial({color:'#344553',roughness:.7});const support=new THREE.Mesh(new THREE.BoxGeometry(.08,.72,.08),supportMat);support.position.set(b.x+dx,1.5,b.z-b.h/2-.62);city.add(support)}
+  const frontX=b.x+(b.frontAxis==='x'?b.frontSign*(b.w/2+.42):0),frontZ=b.z+(b.frontAxis==='z'?b.frontSign*(b.h/2+.42):0);
+  const canopyGeom=b.frontAxis==='x'?new THREE.BoxGeometry(.72,.24,b.h+.22):new THREE.BoxGeometry(b.w+.22,.24,.72);
+  const canopy=new THREE.Mesh(canopyGeom,canopyMat);canopy.position.set(frontX,Math.min(2.15,b.floors*1.15),frontZ);canopy.castShadow=true;city.add(canopy);
+  const supportMat=new THREE.MeshStandardMaterial({color:'#344553',roughness:.7});
+  for(const offset of [-(b.frontAxis==='x'?b.h:b.w)*.34,(b.frontAxis==='x'?b.h:b.w)*.34]){
+   const support=new THREE.Mesh(new THREE.BoxGeometry(.08,.72,.08),supportMat);
+   support.position.set(b.frontAxis==='x'?frontX:b.x+offset,1.5,b.frontAxis==='x'?b.z+offset:frontZ);city.add(support)
+  }
  }
  if(b.kind==='civic'){
   const columnMat=new THREE.MeshStandardMaterial({color:'#73818b',roughness:.82});
-  for(const dx of [-b.w*.3,0,b.w*.3]){const column=new THREE.Mesh(new THREE.BoxGeometry(.18,1.7,.18),columnMat);column.position.set(b.x+dx,1.02,b.z-b.h/2-.22);column.castShadow=true;city.add(column)}
-  const lintel=new THREE.Mesh(new THREE.BoxGeometry(b.w*.72,.22,.26),columnMat);lintel.position.set(b.x,1.92,b.z-b.h/2-.22);city.add(lintel);
+  const frontX=b.x+(b.frontAxis==='x'?b.frontSign*(b.w/2+.22):0),frontZ=b.z+(b.frontAxis==='z'?b.frontSign*(b.h/2+.22):0);
+  for(const offset of [-(b.frontAxis==='x'?b.h:b.w)*.3,0,(b.frontAxis==='x'?b.h:b.w)*.3]){
+   const column=new THREE.Mesh(new THREE.BoxGeometry(.18,1.7,.18),columnMat);column.position.set(b.frontAxis==='x'?frontX:b.x+offset,1.02,b.frontAxis==='x'?b.z+offset:frontZ);column.castShadow=true;city.add(column)
+  }
+  const lintelGeom=b.frontAxis==='x'?new THREE.BoxGeometry(.26,.22,b.h*.72):new THREE.BoxGeometry(b.w*.72,.22,.26);
+  const lintel=new THREE.Mesh(lintelGeom,columnMat);lintel.position.set(frontX,1.92,frontZ);city.add(lintel);
  }
  // Deterministic rooftop HVAC/vent details on selected buildings.
  if(bi%4===0){const roofY=b.floors*1.25+.32;const ventMat=new THREE.MeshStandardMaterial({color:'#293744',roughness:.88});const vent=new THREE.Mesh(new THREE.BoxGeometry(.65,.45,.55),ventMat);vent.position.set(b.x+b.w*.22,roofY,b.z+b.h*.12);vent.castShadow=true;city.add(vent);const ventCap=new THREE.Mesh(new THREE.BoxGeometry(.75,.08,.65),new THREE.MeshStandardMaterial({color:'#5c6a75',roughness:.8}));ventCap.position.set(vent.position.x,roofY+.25,vent.position.z);city.add(ventCap);}
