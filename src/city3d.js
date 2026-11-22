@@ -89,24 +89,44 @@ function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i
 const people=new THREE.Group();scene.add(people);
 const pedestrianPalette=[0x4a91ff,0xd35a66,0xd9b65c,0xa681df,0x86a0b9];
 const pedestrianRecords=[];
-const bodyGeo=new THREE.CapsuleGeometry(.12,.32,3,5),headGeo=new THREE.SphereGeometry(.095,6,5);
+const bodyGeo=new THREE.CapsuleGeometry(.12,.32,3,5),headGeo=new THREE.SphereGeometry(.095,6,5),legGeo=new THREE.CapsuleGeometry(.045,.18,2,4);
 for(let k=0;k<70;k++){
  const lane=k%4, phase=((k*37)%97)/97, route=lane%2===0?78:80, speed=.45+(k%5)*.12;
  const group=new THREE.Group(), color=pedestrianPalette[k%pedestrianPalette.length];
  const body=new THREE.Mesh(bodyGeo,new THREE.MeshStandardMaterial({color,roughness:.85}));
  body.position.y=.34;body.castShadow=true;group.add(body);
  const head=new THREE.Mesh(headGeo,new THREE.MeshStandardMaterial({color:0xb5b9bd,roughness:.9}));head.position.y=.61;group.add(head);
- people.add(group);pedestrianRecords.push({group,lane,phase,speed,route});
+ const legs=[];
+ for(let side=0;side<2;side++){const leg=new THREE.Mesh(legGeo,new THREE.MeshStandardMaterial({color:0x303943,roughness:.9}));leg.position.set(side===0?-.065:.065,.12,0);leg.castShadow=true;group.add(leg);legs.push(leg)}
+ people.add(group);pedestrianRecords.push({group,lane,phase,speed,route,legs});
 }
 function movePedestrians(time){
  pedestrianRecords.forEach(p=>{
   const t=(p.phase+time*p.speed*.018)%1;
+  const stride=Math.sin(time*p.speed*5.2+p.phase*6.28)*.42;
+  p.legs[0].rotation.z=stride;p.legs[1].rotation.z=-stride;
   if(p.lane===0){p.group.position.set(-39+78*t,.02,-20.3);p.group.rotation.y=0}
   else if(p.lane===1){p.group.position.set(-39+78*t,.02,2.2);p.group.rotation.y=0}
   else if(p.lane===2){p.group.position.set(-29.2,.02,-40+80*t);p.group.rotation.y=Math.PI/2}
   else{p.group.position.set(12.8,.02,-40+80*t);p.group.rotation.y=Math.PI/2}
  });
 }
+
+
+// Lightweight city traffic looping along two avenue lanes.
+const traffic=new THREE.Group();city.add(traffic);
+const trafficRecords=[];
+const carBodyGeo=new THREE.BoxGeometry(1.35,.42,2.35),carCabinGeo=new THREE.BoxGeometry(.95,.38,1.15);
+const carPalette=['#b44e56','#668bb2','#c5a35b','#7b9b82','#8d83b4','#d0d4dc'];
+for(let i=0;i<18;i++){
+ const group=new THREE.Group(),color=carPalette[i%carPalette.length];
+ const body=new THREE.Mesh(carBodyGeo,new THREE.MeshStandardMaterial({color,metalness:.12,roughness:.68}));body.position.y=.42;body.castShadow=true;group.add(body);
+ const cabin=new THREE.Mesh(carCabinGeo,new THREE.MeshStandardMaterial({color:'#33404e',roughness:.45,metalness:.18}));cabin.position.set(0,.77,-.05);group.add(cabin);
+ const lightMat=new THREE.MeshStandardMaterial({color:'#f4dca3',emissive:'#e7bf73',emissiveIntensity:.65});
+ for(const side of [-.42,.42]){const light=new THREE.Mesh(new THREE.BoxGeometry(.16,.09,.04),lightMat);light.position.set(side,.45,1.19);group.add(light)}
+ traffic.add(group);trafficRecords.push({group,phase:(i*19%100)/100,speed:.16+(i%4)*.035,lane:i%2});
+}
+function moveTraffic(time){trafficRecords.forEach(v=>{const t=(v.phase+time*v.speed*.04)%1;const z=v.lane===0?-1.25:1.25;v.group.position.set(-40+80*t,.08,z);v.group.rotation.y=v.lane===0?0:Math.PI})}
 
 const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*2-1;mouse.y=-((e.clientY-r.top)/r.height*2-1);raycaster.setFromCamera(mouse,camera);const hits=raycaster.intersectObjects(districtMeshes,false);if(hits.length){selectedDistrict=hits[0].object.userData.district;document.querySelector('#districtName').textContent=selectedDistrict.name;document.querySelector('#inspect').innerHTML=`<strong>${selectedDistrict.name}</strong><br>Район: ${selectedDistrict.type==='business'?'деловой':selectedDistrict.type==='industrial'?'промышленный':selectedDistrict.type==='civic'?'административный':'жилой'}<br>Население: ${(220+selectedDistrict.pts.length*86)} тыс.<br>Экономика: ${61+selectedDistrict.pts.length}%<br>Инфраструктура: ${54+selectedDistrict.pts.length*3}%<br>Экология: ${70-selectedDistrict.pts.length*2}%`;districtMeshes.forEach(m=>m.material.opacity=m.userData.district===selectedDistrict?.85:.56)}});
 function setLayer(id,fn){document.getElementById(id).addEventListener('change',fn)}
@@ -119,7 +139,7 @@ document.querySelector('#toggleDistrict').onclick=()=>{showDistricts=!showDistri
 document.querySelector('#resetCamera').onclick=()=>{camera.position.set(48,62,68);controls.target.set(0,0,0);controls.update()};
 function fitCanvas(){const r=canvas.getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}
 window.addEventListener('resize',fitCanvas);
-const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const elapsed=clock.getElapsedTime();movePedestrians(elapsed);controls.update();renderer.render(scene,camera)}animate();
+const clock=new THREE.Clock();function animate(){requestAnimationFrame(animate);const elapsed=clock.getElapsedTime();movePedestrians(elapsed);moveTraffic(elapsed);controls.update();renderer.render(scene,camera)}animate();
 function toast(msg){const el=document.querySelector('#toast');el.textContent=msg;el.style.display='block';clearTimeout(el._timer);el._timer=setTimeout(()=>el.style.display='none',2100)}
 // Menu creation/opening is handled in index.html independently of WebGL.
 // Campaign, law proposals and calendar advancement are implemented in src/game.js.
