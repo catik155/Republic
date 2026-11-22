@@ -77,10 +77,25 @@
   document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b===btn));
   if(label==='Карта'){toast('Карта города');return}
   if(label==='Законы'){$('law')?.click();return}
-  if(label==='Экономика')popup('Экономика и бюджет','Бюджет: '+state.budget.toFixed(1)+' млрд\nНаселение: '+state.people.toFixed(2)+' млн\nСтабильность: '+Math.round(state.stability)+'%\n\nФинансовый баланс меняется каждый месяц. Кампании и политические решения влияют на поддержку и состояние страны.');
-  else if(label==='Политика')popup('Политическая ситуация','Правительственная коалиция: '+(state.coalition.length?state.coalition.map(i=>state.partyNames[i]).join(' + '):'не сформирована')+'\nДоверие кабинету: '+state.governmentConfidence+'%\nВыборы проведены: '+state.elections+'\nПриняты/рассмотрены законы: '+state.lawCount+'\n\nИспользуй выборы и вотум недоверия, чтобы менять правительство.');
+  if(label==='Экономика')popup('Экономика и бюджет',`Бюджет: ${state.budget.toFixed(1)} млрд
+Население: ${state.people.toFixed(2)} млн
+Стабильность: ${Math.round(state.stability)}%
+
+Финансовый баланс меняется каждый месяц. Кампании и политические решения влияют на поддержку и состояние страны.`);
+  else if(label==='Политика')popup('Политическая ситуация',`Правительственная коалиция: ${state.coalition.length?state.coalition.map(i=>state.partyNames[i]).join(' + '):'не сформирована'}
+Доверие кабинету: ${state.governmentConfidence}%
+Выборы проведены: ${state.elections}
+Приняты/рассмотрены законы: ${state.lawCount}
+
+Используй выборы и вотум недоверия, чтобы менять правительство.`);
   else if(label==='Партии')popup('Партийный рейтинг',state.partyNames.map((n,i)=>n+': '+(state.support[i]||0).toFixed(1)+'% · '+ideologyLabel(state.ideology[i]||0)).join('\n'));
-  else if(label==='Статистика')popup('Статистика страны','Год: '+state.year+' · '+months[state.month-1]+'\nНаселение: '+state.people.toFixed(2)+' млн\nБюджет: '+state.budget.toFixed(1)+' млрд\nСтабильность: '+Math.round(state.stability)+'%\nКампании: '+state.campaigns+'\nВыборы: '+state.elections+'\nЗаконопроекты: '+state.lawCount);
+  else if(label==='Статистика')popup('Статистика страны',`Год: ${state.year} · ${months[state.month-1]}
+Население: ${state.people.toFixed(2)} млн
+Бюджет: ${state.budget.toFixed(1)} млрд
+Стабильность: ${Math.round(state.stability)}%
+Кампании: ${state.campaigns}
+Выборы: ${state.elections}
+Законопроекты: ${state.lawCount}`);
  }));
  $('advance')?.addEventListener('click',()=>sendHostAction({type:'advance'}));
  $('election')?.addEventListener('click',()=>sendHostAction({type:'election'}));
