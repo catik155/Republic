@@ -93,6 +93,24 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
   bldgs.push({mesh,district,floors,kind:district.type});
  });
 });
+// Political party headquarters: distinct landmarks placed in city blocks, not on the road corridors.
+const partyHeadquarters=[
+{name:'Развитие',color:politicalColors[0],x:-24,z:-20},
+{name:'Социал-демократы',color:politicalColors[1],x:-4,z:-19},
+{name:'Национальный союз',color:politicalColors[2],x:26,z:-18},
+{name:'Зелёные',color:politicalColors[3],x:-31,z:12},
+{name:'Гражданская партия',color:politicalColors[4],x:24,z:12}
+];
+partyHeadquarters.forEach((hq,i)=>{
+ const baseMat=new THREE.MeshStandardMaterial({color:'#253443',roughness:.8});
+ const colorMat=new THREE.MeshStandardMaterial({color:hq.color,roughness:.5,emissive:hq.color,emissiveIntensity:.18});
+ const base=new THREE.Mesh(new THREE.BoxGeometry(5.6,.55,4.8),baseMat);base.position.set(hq.x,.28,hq.z);base.castShadow=true;base.receiveShadow=true;city.add(base);
+ const main=new THREE.Mesh(new THREE.BoxGeometry(4.4,4.2,3.7),new THREE.MeshStandardMaterial({color:['#526172','#46586a','#596571','#485d60','#566270'][i],roughness:.78}));
+ main.position.set(hq.x,2.65,hq.z);main.castShadow=true;main.receiveShadow=true;city.add(main);
+ const tower=new THREE.Mesh(new THREE.BoxGeometry(1.4,2.3,1.4),colorMat);tower.position.set(hq.x,5.85,hq.z);tower.castShadow=true;city.add(tower);
+ const marker=new THREE.Mesh(new THREE.BoxGeometry(3.4,.24,.08),colorMat);marker.position.set(hq.x,4.4,hq.z-1.9);city.add(marker);
+ const label=makeLabel('Штаб: '+hq.name);label.scale.set(13,3.2,1);label.position.set(hq.x,7.2,hq.z);city.add(label);
+});
 // Parks are deliberate landscaped spaces in the static city plan
 const parkMat=new THREE.MeshStandardMaterial({color:'#233d32',roughness:1});
 const parkShapes=[[[-39,-33],[-34,-35],[-32,-30],[-35,-25],[-40,-26]],[[-4,-35],[2,-35],[5,-32],[1,-28],[-4,-30]],[[16,29],[20,27],[23,31],[21,36],[17,35]]];
