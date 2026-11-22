@@ -38,7 +38,7 @@ This document tracks the game direction requested by the player across earlier d
 - [ ] Election campaign must last a full political month rather than resolving in a single day/button press.
 - [x] Start new games with national budget and political capital at zero; treasury only accrues while a government coalition exists.
 - [x] Law voting includes a direct player-party choice (yes/no/abstain); other parties vote by ideology.
-- [x] Add separate political capital per party (starts at zero, accrues monthly, and is spent by party actions such as media campaigns and law proposals).
+- [x] Add separate political capital per party (starts at zero, accrues monthly, and is spent by party actions such as media campaigns and law proposals). Resource initialization is synchronized with the configured party count.
 - [x] Campaign spending is restricted to parties in the governing coalition when it uses national budget; opposition cannot spend treasury funds.
 - [ ] Add individual party campaign treasuries and autonomous party fund-raising; opposition should use its own money for rallies and outreach.
 - [ ] Improve coalition bargaining: cabinet/ministerial portfolios, policy promises, party acceptance, confidence votes.
