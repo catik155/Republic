@@ -27,6 +27,15 @@
     const monthlyBalance=(state.people*.34)+(state.stability/100*.7)-1.9;state.budget=Math.max(0,state.budget+monthlyBalance+(Math.random()-.5)*.8);state.people=Math.max(1,state.people+(Math.random()-.48)*.018);
     state.support=state.support.map(v=>Math.max(1,Math.min(65,v+(Math.random()-.5)*.5)));
     const total=state.support.reduce((x,y)=>x+y,0);state.support=state.support.map(v=>v*100/total);
+    // Rival parties make autonomous monthly decisions: campaigns, policy deals, and pressure.
+    const rivalMoves=[];
+    for(let rival=1;rival<state.partyNames.length;rival++){
+      const roll=Math.random();
+      if(roll<.48){const gain=.22+Math.random()*.32;state.support[rival]+=gain;state.support[0]=Math.max(1,state.support[0]-gain*.18);rivalMoves.push(state.partyNames[rival]+' провела кампанию');}
+      else if(roll<.76){const delta=(Math.random()-.35)*.18;state.stability=Math.max(10,Math.min(95,state.stability+delta));rivalMoves.push(state.partyNames[rival]+' выступила с инициативой');}
+      else {rivalMoves.push(state.partyNames[rival]+' ведёт переговоры');}
+    }
+    const rivalTotal=state.support.reduce((x,y)=>x+y,0)||1;state.support=state.support.map(v=>v*100/rivalTotal);
     log('📅 '+months[state.month-1]+' '+state.year+' · экономика, рейтинг правительства и общественное настроение обновлены.');
     if(Math.random()<.4){
       const crises=[
