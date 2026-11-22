@@ -36,7 +36,16 @@
       else {rivalMoves.push(state.partyNames[rival]+' ведёт переговоры');}
     }
     const rivalTotal=state.support.reduce((x,y)=>x+y,0)||1;state.support=state.support.map(v=>v*100/rivalTotal);
-    log('📅 '+months[state.month-1]+' '+state.year+' · экономика, рейтинг правительства обновлены. Соперники: '+rivalMoves.join('; ')+'.');
+    let aiLawNews='';
+    if(state.partyNames.length>1&&Math.random()<.22){
+      const proposer=1+Math.floor(Math.random()*(state.partyNames.length-1));
+      const policyOptions=[{name:'Увеличение общественного жилья',alignment:-1,effect:()=>{state.unrest=Math.max(0,state.unrest-1.2)}},{name:'Снижение налогов для бизнеса',alignment:2,effect:()=>{state.inflation=Math.min(25,state.inflation+.15)}},{name:'Расширение общественного здравоохранения',alignment:-2,effect:()=>{state.stability=Math.min(95,state.stability+.8)}},{name:'Ужесточение экологических стандартов',alignment:-1,effect:()=>{state.stability=Math.max(5,state.stability-.15)}},{name:'Усиление полиции',alignment:2,effect:()=>{state.unrest=Math.max(0,state.unrest-.5)}}];
+      const law=policyOptions[Math.floor(Math.random()*policyOptions.length)],voteSeats=allocateSeats(state.support);let y=0,n=0,ab=0;
+      state.ideology.forEach((ide,i)=>{const distance=Math.abs((ide||0)-law.alignment);if(distance<=.5)y+=voteSeats[i]||0;else if(distance<=1.5)ab+=voteSeats[i]||0;else n+=voteSeats[i]||0});
+      const passed=y>=226;if(passed)law.effect();aiLawNews=' · '+state.partyNames[proposer]+' внесла закон «'+law.name+'» — '+(passed?'принят':'отклонён')+' (За '+y+' / Против '+n+' / Воздержались '+ab+').';
+      state.lawCount++;
+    }
+    log('📅 '+months[state.month-1]+' '+state.year+' · экономика, рейтинг правительства обновлены. Соперники: '+rivalMoves.join('; ')+aiLawNews+'.');
     if(Math.random()<.4&&!(state.month===12&&state.year>=state.nextElectionYear)){
       const crises=[
         {title:'Забастовка в промышленном секторе',message:'Рабочие требуют пересмотра условий труда.',choices:[{label:'Повысить зарплаты · бюджет −4 млрд, стабильность +3',onClick:()=>{state.budget=Math.max(0,state.budget-4);state.stability=Math.min(95,state.stability+3)}},{label:'Провести переговоры · бюджет −2 млрд, стабильность +1',onClick:()=>{state.budget=Math.max(0,state.budget-2);state.stability=Math.min(95,state.stability+1)}},{label:'Не вмешиваться · бюджет +1 млрд, стабильность −4',onClick:()=>{state.budget+=1;state.stability=Math.max(5,state.stability-4)}}]},
