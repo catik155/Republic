@@ -74,21 +74,21 @@ const blockCenters=[
 [-32,38],[-22,38],[-12,38],[0,38],[8,38],[23,38],[35,38]
 ];
 const bldgs=[];
+function distanceToSegment(px,pz,a,b){const dx=b[0]-a[0],dz=b[1]-a[1],den=dx*dx+dz*dz||1;const t=Math.max(0,Math.min(1,((px-a[0])*dx+(pz-a[1])*dz)/den));return Math.hypot(px-(a[0]+dx*t),pz-(a[1]+dz*t))}
+function nearRoad(px,pz,buildingRadius=1.7){for(let pathIndex=0;pathIndex<avenuePaths.length;pathIndex++){const path=avenuePaths[pathIndex],width=pathIndex%3===0?3.6:2.8;for(let seg=0;seg<path.length-1;seg++){const safeDistance=width/2+.18+1.25+buildingRadius+.35;if(distanceToSegment(px,pz,path[seg],path[seg+1])<safeDistance)return true}}return false}
 blockCenters.forEach(([baseX,baseZ],idx)=>{
- // Stable pseudo-random offsets vary block placements from one another without moving them onto road edges.
  const bx=baseX+Math.sin(idx*12.9898)*1.6,bz=baseZ+Math.cos(idx*7.233)*1.5;
  const district=districts.find(d=>pointInPolygon([bx,bz],d.pts))||districts[4];
- // block groups with controlled offsets, avoid randomness entirely
  const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9]];
  variations.forEach(([dx,dz],k)=>{
-  const x=bx+dx,z=bz+dz; if(Math.abs(x)>41||Math.abs(z)>43)return;
+  const x=bx+dx,z=bz+dz;if(Math.abs(x)>41||Math.abs(z)>43)return;
   let floors=1+((idx*3+k*5)%6);if(district.type==='business')floors+=3;if(district.type==='industrial')floors=1+((idx+k)%3);
   const w=2.4+(idx%3)*.25,h=2.2+(k%2)*.3;
+  if(nearRoad(x,z,Math.max(w,h)/2))return;
   const color=district.type==='business'?'#566777':district.type==='industrial'?'#4b5b61':['#485563','#3f4c59','#53616e'][(idx+k)%3];
-  const geom=new THREE.BoxGeometry(w,floors*1.25,h);const mat=new THREE.MeshStandardMaterial({color,roughness:.84});
+  const geom=new THREE.BoxGeometry(w,floors*1.25,h),mat=new THREE.MeshStandardMaterial({color,roughness:.84});
   const mesh=new THREE.Mesh(geom,mat);mesh.position.set(x,floors*.625+.12,z);mesh.castShadow=true;mesh.receiveShadow=true;city.add(mesh);
   const roof=new THREE.Mesh(new THREE.BoxGeometry(w+.18,.14,h+.18),new THREE.MeshStandardMaterial({color:'#657586',roughness:.85}));roof.position.set(x,floors*1.25+.2,z);roof.castShadow=true;city.add(roof);
-  // Window strips as inset facade panels
   if(floors>2){const winMat=new THREE.MeshStandardMaterial({color:'#92a9ba',emissive:'#26394a',emissiveIntensity:.22,roughness:.45});for(let floor=1;floor<floors;floor++){const strip=new THREE.Mesh(new THREE.BoxGeometry(w*.65,.12,.035),winMat);strip.position.set(x,floor*1.22,z-h/2-.02);city.add(strip)}}
   bldgs.push({mesh,district,floors,kind:district.type});
  });
