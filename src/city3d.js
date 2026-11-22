@@ -127,7 +127,18 @@ const govSign=makeLabel('ПРАВИТЕЛЬСТВО');govSign.scale.set(17,4,1);
 // Parks are deliberate landscaped spaces in the static city plan
 const parkMat=new THREE.MeshStandardMaterial({color:'#233d32',roughness:1});
 const parkShapes=[[[-39,-33],[-34,-35],[-32,-30],[-35,-25],[-40,-26]],[[-4,-35],[2,-35],[5,-32],[1,-28],[-4,-30]],[[16,29],[20,27],[23,31],[21,36],[17,35]]];
-parkShapes.forEach(points=>{const g=new THREE.Shape();points.forEach(([x,z],i)=>i?g.lineTo(x,-z):g.moveTo(x,-z));g.closePath();const geom=new THREE.ShapeGeometry(g);geom.rotateX(-Math.PI/2);const m=new THREE.Mesh(geom,parkMat);m.position.y=.14;city.add(m)});
+parkShapes.forEach((points,parkIndex)=>{const g=new THREE.Shape();points.forEach(([x,z],i)=>i?g.lineTo(x,-z):g.moveTo(x,-z));g.closePath();const geom=new THREE.ShapeGeometry(g);geom.rotateX(-Math.PI/2);const m=new THREE.Mesh(geom,parkMat);m.position.y=.14;city.add(m);
+ // Fixed park furniture: benches and trees are part of the persistent city scene.
+ const center=points.reduce((sum,p)=>[sum[0]+p[0]/points.length,sum[1]+p[1]/points.length],[0,0]);
+ const benchWood=new THREE.MeshStandardMaterial({color:'#695342',roughness:.9}),benchMetal=new THREE.MeshStandardMaterial({color:'#313e49',roughness:.85});
+ const bench=new THREE.Group();bench.position.set(center[0]+(parkIndex-1)*.6,.18,center[1]);bench.rotation.y=parkIndex*.7;
+ const seat=new THREE.Mesh(new THREE.BoxGeometry(2.2,.16,.58),benchWood);seat.position.y=.62;bench.add(seat);
+ const back=new THREE.Mesh(new THREE.BoxGeometry(2.2,.65,.12),benchWood);back.position.set(0,.98,-.24);bench.add(back);
+ for(const lx of [-.85,.85])for(const lz of [-.18,.18]){const leg=new THREE.Mesh(new THREE.BoxGeometry(.12,.62,.12),benchMetal);leg.position.set(lx,.31,lz);bench.add(leg)}
+ city.add(bench);
+ const treeMaterial=new THREE.MeshStandardMaterial({color:'#253c32',roughness:1}),trunkMaterial=new THREE.MeshStandardMaterial({color:'#54483b',roughness:1});
+ for(let t=0;t<2;t++){const tx=points[t][0],tz=points[t][1],trunk=new THREE.Mesh(new THREE.CylinderGeometry(.14,.18,1.2,6),trunkMaterial);trunk.position.set(tx,.6,tz);city.add(trunk);const crown=new THREE.Mesh(new THREE.ConeGeometry(1.05,2.3,7),treeMaterial);crown.position.set(tx,2,tz);crown.castShadow=true;city.add(crown)}
+});
 function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,zi]=pts[i],[xj,zj]=pts[j];if(((zi>z)!=(zj>z))&&(x<(xj-xi)*(z-zi)/(zj-zi)+xi))inside=!inside}return inside}
 // Pedestrians roam along connected road intersections, with gentle lateral weaving.
 const people=new THREE.Group();scene.add(people);
