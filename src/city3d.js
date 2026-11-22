@@ -51,7 +51,7 @@ districts.forEach((d,i)=>{
 });
 const asphalt=new THREE.MeshStandardMaterial({color:'#222c36',roughness:1});
 const sidewalkMat=new THREE.MeshStandardMaterial({color:'#39444f',roughness:1});
-function road(x1,z1,x2,z2,width=3.1){const len=Math.hypot(x2-x1,z2-z1);const m=new THREE.Mesh(new THREE.BoxGeometry(width,.12,len),asphalt);m.position.set((x1+x2)/2,.06,(z1+z2)/2);m.rotation.y=-Math.atan2(x2-x1,z2-z1);m.receiveShadow=true;city.add(m);const curbW=.4;for(const off of [-width/2-curbW/2,width/2+curbW/2]){const curb=new THREE.Mesh(new THREE.BoxGeometry(curbW,.15,len),sidewalkMat);curb.position.set((x1+x2)/2,.12,(z1+z2)/2);curb.rotation.y=m.rotation.y;city.add(curb)}}
+function road(x1,z1,x2,z2,width=3.1){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),angle=Math.atan2(dx,dz),cx=(x1+x2)/2,cz=(z1+z2)/2;const m=new THREE.Mesh(new THREE.BoxGeometry(width,.12,len),asphalt);m.position.set(cx,.06,cz);m.rotation.y=angle;m.receiveShadow=true;city.add(m);const curbW=.18,walkW=1.25;for(const side of [-1,1]){const walk=new THREE.Mesh(new THREE.BoxGeometry(walkW,.09,len),sidewalkMat);walk.position.set(cx,.13,cz);walk.rotation.y=angle;walk.translateX(side*(width/2+curbW+walkW/2));walk.receiveShadow=true;city.add(walk);const curb=new THREE.Mesh(new THREE.BoxGeometry(curbW,.16,len),sidewalkMat);curb.position.set(cx,.12,cz);curb.rotation.y=angle;curb.translateX(side*(width/2+curbW/2));city.add(curb)}}
 // Organic road plan: staggered arterials, angled links and short curved-like segmented streets.
 const avenuePaths=[
 [[-43,-20],[-28,-17],[-12,-21],[3,-16],[18,-19],[33,-16],[43,-20]],
