@@ -10,7 +10,7 @@
  const popup=(title,message,choices=[])=>{let box=$('gamePopup');if(box)box.remove();box=document.createElement('div');box.id='gamePopup';box.style.cssText='position:fixed;inset:0;z-index:300;background:#02070dd9;display:flex;align-items:center;justify-content:center;padding:16px;font:14px Segoe UI,system-ui,sans-serif;color:#dbe5ef';const panel=document.createElement('div');panel.style.cssText='width:min(560px,94vw);max-height:85vh;overflow:auto;background:#111c28;border:1px solid #38536b;border-radius:16px;padding:22px;box-shadow:0 24px 90px #0009';const heading=document.createElement('h2');heading.textContent=title;heading.style.cssText='margin:0 0 12px;font-size:20px';const body=document.createElement('p');body.textContent=message;body.style.cssText='white-space:pre-line;line-height:1.65;color:#b8c8d8;margin:0 0 18px';panel.append(heading,body);const actions=document.createElement('div');actions.style.cssText='display:flex;flex-direction:column;gap:8px';choices.forEach(choice=>{const btn=document.createElement('button');btn.textContent=choice.label;btn.style.cssText='text-align:left;padding:11px;background:#1a2b3d;border:1px solid #39536b;border-radius:8px;color:#e2edf7;cursor:pointer';btn.onclick=()=>{box.remove();choice.onClick?.()};actions.appendChild(btn)});if(!choices.length){const close=document.createElement('button');close.textContent='Продолжить';close.style.cssText='padding:10px 16px;background:#285c91;border:1px solid #417ab0;border-radius:8px;color:#fff;cursor:pointer';close.onclick=()=>box.remove();actions.appendChild(close)}panel.appendChild(actions);box.appendChild(panel);box.onclick=e=>{if(e.target===box)box.remove()};document.body.appendChild(box);return box};
  const netStatus=m=>{const el=$('networkStatus');if(el)el.textContent=m};
  const ideologyLabel=v=>v<=-2?'Радикально левый':v===-1?'Левый':v===0?'Центрист':v===1?'Правый':'Радикально правый';const renderPartyPanel=()=>{const box=document.querySelector('.left .section:nth-of-type(3)');if(!box)return;box.innerHTML='<h3>Партии</h3>'+state.partyNames.map((n,i)=>'<div class="rowstat" title="Идеологический курс: '+ideologyLabel(state.ideology[i]||0)+'"><span style="color:'+state.partyColors[i]+'">● '+n+' <small style="opacity:.7">'+ideologyLabel(state.ideology[i]||0)+'</small></span><b>'+Math.round(state.support[i]||0)+'%</b></div>').join('');};
- const render=()=>{renderPartyPanel();if($('politicalCapital'))$('politicalCapital').textContent=Math.round(state.politicalCapital??0);if($('unrestTop'))$('unrestTop').textContent=Math.round(state.unrest??0)+'%';if($('yearTop'))$('yearTop').textContent=state.year;if($('stabilityTop'))$('stabilityTop').textContent=Math.round(state.stability)+'%';if($('budgetTop'))$('budgetTop').textContent='₽'+state.budget.toFixed(1)+' млрд';if($('populationTop'))$('populationTop').textContent=state.people.toFixed(2)+' млн';if($('yearTop'))$('yearTop').textContent=state.year;};
+ const render=()=>{renderPartyPanel();if($('politicalCapital'))$('politicalCapital').textContent=Math.round(state.politicalCapital??0);if($('unrestTop'))$('unrestTop').textContent=Math.round(state.unrest??0)+'%';if($('yearTop'))$('yearTop').textContent=state.year;if($('monthTop'))$('monthTop').textContent=months[state.month-1];if($('stabilityTop'))$('stabilityTop').textContent=Math.round(state.stability)+'%';if($('budgetTop'))$('budgetTop').textContent='₽'+state.budget.toFixed(1)+' млрд';if($('populationTop'))$('populationTop').textContent=state.people.toFixed(2)+' млн';if($('yearTop'))$('yearTop').textContent=state.year;};
  const save=()=>{try{localStorage.setItem('republic-save-v020',JSON.stringify(state))}catch{}};
  const serialize=()=>({name:state.name,year:state.year,month:state.month,parties:state.parties,ai:state.ai,difficulty:state.difficulty,campaigns:state.campaigns,stability:state.stability,budget:state.budget,people:state.people,lawCount:state.lawCount,elections:state.elections,coalition:state.coalition,governmentConfidence:state.governmentConfidence,politicalCapital:state.politicalCapital,unrest:state.unrest,ideology:state.ideology,support:state.support,partyNames:state.partyNames,partyColors:state.partyColors,chronicle:state.chronicle,players:state.players,hostName:state.hostName,minPlayers:state.minPlayers,maxPlayers:state.maxPlayers});
  const restore=s=>{if(!s)return;Object.assign(state,s);state.politicalCapital=Number(state.politicalCapital??12);state.unrest=Number(state.unrest??18);if(!Array.isArray(state.ideology)||state.ideology.length!==state.partyNames.length)state.ideology=state.partyNames.map((_,i)=>[1,-1,2,1,0,-1,2,-2,0,-1,1,0,1,0,-1,1,2,-2,0,1][i%20]);render();if(state.chronicle)log(state.chronicle)};
@@ -46,7 +46,7 @@
       event=crises[Math.floor(Math.random()*crises.length)];
     }
   }else if(a.type==='campaign'){
-    state.campaigns++;const idx=(a.partyIndex??(state.campaigns-1))%state.partyNames.length;const gain=1.4;
+    state.campaigns++;state.politicalCapital=Math.max(0,(state.politicalCapital??0)-1);const idx=(a.partyIndex??(state.campaigns-1))%state.partyNames.length;const gain=1.4;
     state.support[idx]=Math.min(70,state.support[idx]+gain);
     state.support=state.support.map((v,i)=>i===idx?v:Math.max(0,v-gain/(state.support.length-1)));
     const total=state.support.reduce((x,y)=>x+y,0);state.support=state.support.map(v=>v*100/total);
@@ -69,7 +69,7 @@
   }
   render();save();toast(a.type==='advance'?'Месяц продвинут':'Действие выполнено');
   if(event){popup(event.title,state.chronicle+'\\n\\n'+event.message,event.choices.map(choice=>({label:choice.label,onClick:()=>{choice.onClick();log('Решение принято: '+choice.label.split(' · ')[0]+'.');render();save();toast('Последствия решения применены')}})));}
-  else{const title=a.type==='advance'?'Новый месяц':a.type==='election'?'Итоги выборов':a.type==='campaign'?'Предвыборная кампания':a.type==='law'?'Результат голосования':'Политическое событие';popup(title,state.chronicle);}
+  else if(!a.automatic){const title=a.type==='advance'?'Новый месяц':a.type==='election'?'Итоги выборов':a.type==='campaign'?'Предвыборная кампания':a.type==='law'?'Результат голосования':'Политическое событие';popup(title,state.chronicle);}
  }
  function bindConn(conn,isIncoming){
   conn.on('open',()=>{if(isIncoming){connections.push(conn);if(state.players.length>=state.maxPlayers){send(conn,{type:'full',message:'Комната заполнена'});conn.close();return}state.players.push({name:'Подключается…',peerId:conn.peer});send(conn,{type:'welcome',state:serialize(),room:roomCode,hostName:$('playerName')?.value||'Хост'});netStatus('Игрок подключился');renderPeers();}else{hostConnection=conn;send(conn,{type:'join',name:$('playerName')?.value||'Игрок'});netStatus('Связь с хостом установлена');}});
@@ -118,7 +118,7 @@
   automaticCalendar=setInterval(()=>{
    if(document.hidden)return;
    if(networked&&!isHost)return;
-   applyAction({type:'advance'},false);
+   applyAction({type:'advance',automatic:true},false);
    if(isHost&&networked)broadcastState();
   },60000);
  });
