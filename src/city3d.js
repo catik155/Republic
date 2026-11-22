@@ -122,6 +122,7 @@ const pedestrianPalette=['#4a91ff','#d35a66','#d9b65c','#a681df','#86a0b9'];
 const pedestrianRecords=[];
 const bodyGeo=new THREE.CapsuleGeometry(.12,.38,3,6);
 const headGeo=new THREE.SphereGeometry(.12,8,6);
+const armGeo=new THREE.CapsuleGeometry(.045,.24,2,5),legGeo=new THREE.CapsuleGeometry(.055,.26,2,5);
 // A connected, uneven street network gives pedestrians route choices and keeps them on-road.
 const walkNodes=[[-40,-19],[-27,-17],[-14,-20],[0,-16],[14,-18],[29,-17],[40,-20],
  [-38,1],[-24,3],[-11,0],[3,2],[18,0],[33,3],[41,1],
@@ -134,9 +135,11 @@ function pickNextNode(current,previous){const options=walkAdj[current].filter(i=
 for(let k=0;k<90;k++){
  const start=k%walkNodes.length, material=new THREE.MeshStandardMaterial({color:pedestrianPalette[k%5],roughness:.8});
  const person=new THREE.Group(),body=new THREE.Mesh(bodyGeo,material),head=new THREE.Mesh(headGeo,material);
- body.position.y=.38;head.position.y=.68;person.add(body,head);person.position.y=.02;people.add(person);
+ body.position.y=.38;head.position.y=.68;person.add(body,head);
+ const limbs=[];for(const side of [-1,1]){const armPivot=new THREE.Group();armPivot.position.set(side*.14,.48,0);const arm=new THREE.Mesh(armGeo,material);arm.position.y=-.13;armPivot.add(arm);person.add(armPivot);limbs.push(armPivot);const legPivot=new THREE.Group();legPivot.position.set(side*.07,.22,0);const leg=new THREE.Mesh(legGeo,material);leg.position.y=-.13;legPivot.add(leg);person.add(legPivot);limbs.push(legPivot)}
+ person.position.y=.02;people.add(person);
  const target=pickNextNode(start,-1);
- pedestrianRecords.push({dot:person,node:start,previous:-1,target,progress:Math.random(),speed:.7+Math.random()*.65,side:(k%2?-1:1),phase:Math.random()*Math.PI*2});
+ pedestrianRecords.push({dot:person,limbs,node:start,previous:-1,target,progress:Math.random(),speed:.7+Math.random()*.65,side:(k%2?-1:1),phase:Math.random()*Math.PI*2});
 }
 function movePedestrians(time){pedestrianRecords.forEach(p=>{
  const a=walkNodes[p.node],b=walkNodes[p.target];
@@ -148,6 +151,9 @@ function movePedestrians(time){pedestrianRecords.forEach(p=>{
  const sway=p.side*2.1+Math.sin(time*1.6+p.phase)*.12;
  p.dot.position.set(x-dz/len*sway,.02,z+dx/len*sway);
  p.dot.rotation.y=Math.atan2(dx,dz);
+ const gait=Math.sin(time*5.5+p.phase);
+ p.limbs[0].rotation.z=gait*.32;p.limbs[1].rotation.z=-gait*.32;
+ p.limbs[2].rotation.z=-gait*.4;p.limbs[3].rotation.z=gait*.4;
 })}
 const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*2-1;mouse.y=-((e.clientY-r.top)/r.height*2-1);raycaster.setFromCamera(mouse,camera);const hits=raycaster.intersectObjects(districtMeshes,false);if(hits.length){selectedDistrict=hits[0].object.userData.district;document.querySelector('#districtName').textContent=selectedDistrict.name;document.querySelector('#inspect').innerHTML=`<strong>${selectedDistrict.name}</strong><br>Район: ${selectedDistrict.type==='business'?'деловой':selectedDistrict.type==='industrial'?'промышленный':selectedDistrict.type==='civic'?'административный':'жилой'}<br>Население: ${(220+selectedDistrict.pts.length*86)} тыс.<br>Экономика: ${61+selectedDistrict.pts.length}%<br>Инфраструктура: ${54+selectedDistrict.pts.length*3}%<br>Экология: ${70-selectedDistrict.pts.length*2}%`;districtMeshes.forEach(m=>m.material.opacity=m.userData.district===selectedDistrict?.85:.56)}});
 function setLayer(id,fn){document.getElementById(id).addEventListener('change',fn)}
