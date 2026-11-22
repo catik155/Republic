@@ -129,7 +129,7 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
    if(variant===3&&wi%2===0){const sideWin=win.clone();if(frontAxis==='x'){sideWin.position.set(x-frontSign*(w/2+.026),floor*1.22,z+t);sideWin.rotation.y=-frontSign*Math.PI/2;}else{sideWin.position.set(x+t,floor*1.22,z-frontSign*(h/2+.026));sideWin.rotation.y=frontSign>0?0:Math.PI;}city.add(sideWin);}
   }
   const side=frontAxis,sign=frontSign;
-  const entryX=x+(side==='x'?sign*(w/2+.55):0),entryZ=z+(side==='z'?sign*(h/2+.55):0);const door=new THREE.Mesh(new THREE.BoxGeometry(.55,.9,.08),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(entryX,.5,entryZ);if(side==='x')door.rotation.y=Math.PI/2;city.add(door);bldgs.push({mesh,district,floors,kind:district.type,x,z,w,h,entryX,entryZ,variant});
+  const entryX=x+(side==='x'?sign*(w/2+.55):0),entryZ=z+(side==='z'?sign*(h/2+.55):0);const door=new THREE.Mesh(new THREE.BoxGeometry(.55,.9,.08),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(entryX,.5,entryZ);if(side==='x')door.rotation.y=sign>0?-Math.PI/2:Math.PI/2;city.add(door);bldgs.push({mesh,district,floors,kind:district.type,x,z,w,h,entryX,entryZ,variant});
  });
 });
 // Fine city detailing is static and deterministic: windows, roof equipment, crossings, and street lighting.
