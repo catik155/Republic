@@ -115,10 +115,12 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
   else roof=new THREE.Mesh(new THREE.BoxGeometry(w+.18,.14,h+.18),roofMat);
   roof.position.set(x,floors*1.25+.2,z);roof.castShadow=true;city.add(roof);
   // Locate nearest street and orient the front facade directly toward it.
-  const streetCandidates=[-30,-10,10,30].map(coord=>({xDist:Math.abs(x-coord),zDist:Math.abs(z-coord),xRoad:coord,zRoad:coord}));
-  const nearestStreet=streetCandidates.reduce((best,v)=>v.xDist+v.zDist<best.xDist+best.zDist?v:best);
-  const frontAxis=nearestStreet.xDist<nearestStreet.zDist?'x':'z';
-  const frontSign=frontAxis==='x'?(nearestStreet.xRoad<x?-1:1):(nearestStreet.zRoad<z?-1:1);
+  const streetCoords=[-30,-10,10,30];
+  const nearestVertical=streetCoords.reduce((best,coord)=>Math.abs(x-coord)<Math.abs(x-best)?coord:best,streetCoords[0]);
+  const nearestHorizontal=streetCoords.reduce((best,coord)=>Math.abs(z-coord)<Math.abs(z-best)?coord:best,streetCoords[0]);
+  // Compare true perpendicular distances independently; avoid picking one diagonal grid cell.
+  const frontAxis=Math.abs(x-nearestVertical)<=Math.abs(z-nearestHorizontal)?'x':'z';
+  const frontSign=frontAxis==='x'?(nearestVertical<x?-1:1):(nearestHorizontal<z?-1:1);
   const facadeMat=new THREE.MeshStandardMaterial({color:['#92a9ba','#d1b78d','#9bb8a7','#b4a2c7'][variant],emissive:'#26394a',emissiveIntensity:.22,roughness:.45});
   const windowsPerFloor=Math.max(2,Math.floor(Math.max(w,h)/.65));
   for(let floor=1;floor<floors;floor++)for(let wi=0;wi<windowsPerFloor;wi++){
