@@ -29,7 +29,7 @@ jobs:
       - name: Check JavaScript
         run: npm run check
       - name: Build browser version
-        run: npm run build:web -- --base=/Republic/
+        run: npm run build:web
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload Pages artifact
