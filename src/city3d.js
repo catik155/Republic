@@ -268,7 +268,19 @@ const metricLabels={adminBudget:'adminBudgetValue',adminStability:'adminStabilit
 const metricDefs={adminBudget:{key:'budget',format:v=>'₽'+Number(v).toFixed(0)+' млрд'},adminStability:{key:'stability',format:v=>v+'%'},adminPolitical:{key:'politicalCapital',format:v=>v},adminUnrest:{key:'unrest',format:v=>v+'%'},adminMonth:{key:'month',format:v=>['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'][v]},adminYear:{key:'year',format:v=>v},adminPopulation:{key:'people',format:v=>Number(v).toFixed(1)+' млн'}};
 function syncMetricSliders(){const st=window.republicState;if(!st)return;metricIds.forEach(id=>{const el=document.getElementById(id),def=metricDefs[id];if(el)el.value=st[def.key]??el.value;const out=document.getElementById(metricLabels[id]);if(out)out.textContent=def.format(el?.value??st[def.key])})}
 adminOpen?.addEventListener('click',syncMetricSliders);
-metricIds.forEach(id=>{const el=document.getElementById(id);if(!el)return;el.addEventListener('input',()=>{const def=metricDefs[id],st=window.republicState;if(!st)return;const value=Number(el.value);st[def.key]=value;const out=document.getElementById(metricLabels[id]);if(out)out.textContent=def.format(value);window.dispatchEvent(new CustomEvent('republic:adminchange',{detail:{key:def.key,value}})})})
+ metricIds.forEach(id=>{
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.addEventListener('input',()=>{
+   const def=metricDefs[id],st=window.republicState;
+   if(!st)return;
+   const value=Number(el.value);
+   st[def.key]=value;
+   const out=document.getElementById(metricLabels[id]);
+   if(out)out.textContent=def.format(value);
+   window.dispatchEvent(new CustomEvent('republic:adminchange',{detail:{key:def.key,value}}));
+  });
+ });
 window.cityAdmin={getSettings:()=>({...pedestrianAdmin}),setResidents:n=>{pedestrianAdmin.count=Math.max(90,Math.min(150,Number(n)||110));if(residentSlider)residentSlider.value=pedestrianAdmin.count;updateResidentVisibility();updateAdminLabels()}};
 updateAdminLabels();auditHQ();
 const clock=new THREE.Clock();let lastLayerRefresh=0;function animate(){requestAnimationFrame(animate);const elapsed=clock.getElapsedTime();movePedestrians(elapsed);if(elapsed-lastLayerRefresh>1){applyLayer();lastLayerRefresh=elapsed}controls.update();renderer.render(scene,camera)}animate();
