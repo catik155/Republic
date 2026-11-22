@@ -120,7 +120,8 @@ function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i
 const people=new THREE.Group();scene.add(people);
 const pedestrianPalette=['#4a91ff','#d35a66','#d9b65c','#a681df','#86a0b9'];
 const pedestrianRecords=[];
-const dotGeo=new THREE.SphereGeometry(.22,10,8);
+const bodyGeo=new THREE.CapsuleGeometry(.12,.38,3,6);
+const headGeo=new THREE.SphereGeometry(.12,8,6);
 // A connected, uneven street network gives pedestrians route choices and keeps them on-road.
 const walkNodes=[[-40,-19],[-27,-17],[-14,-20],[0,-16],[14,-18],[29,-17],[40,-20],
  [-38,1],[-24,3],[-11,0],[3,2],[18,0],[33,3],[41,1],
@@ -131,10 +132,11 @@ const walkAdj=walkNodes.map(()=>[]);
 walkLinks.forEach(([a,b])=>{walkAdj[a].push(b);walkAdj[b].push(a)});
 function pickNextNode(current,previous){const options=walkAdj[current].filter(i=>i!==previous);return options.length?options[Math.floor(Math.random()*options.length)]:walkAdj[current][0]??current}
 for(let k=0;k<90;k++){
- const start=k%walkNodes.length, dot=new THREE.Mesh(dotGeo,new THREE.MeshStandardMaterial({color:pedestrianPalette[k%5],roughness:.8}));
- dot.position.y=.24;people.add(dot);
+ const start=k%walkNodes.length, material=new THREE.MeshStandardMaterial({color:pedestrianPalette[k%5],roughness:.8});
+ const person=new THREE.Group(),body=new THREE.Mesh(bodyGeo,material),head=new THREE.Mesh(headGeo,material);
+ body.position.y=.38;head.position.y=.68;person.add(body,head);person.position.y=.02;people.add(person);
  const target=pickNextNode(start,-1);
- pedestrianRecords.push({dot,node:start,previous:-1,target,progress:Math.random(),speed:.7+Math.random()*.65,side:(Math.random()-.5)*1.5,phase:Math.random()*Math.PI*2});
+ pedestrianRecords.push({dot:person,node:start,previous:-1,target,progress:Math.random(),speed:.7+Math.random()*.65,side:(k%2?-.28:.28),phase:Math.random()*Math.PI*2});
 }
 function movePedestrians(time){pedestrianRecords.forEach(p=>{
  const a=walkNodes[p.node],b=walkNodes[p.target];
@@ -143,8 +145,9 @@ function movePedestrians(time){pedestrianRecords.forEach(p=>{
  const t=p.progress, x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;
  // Gentle lateral sway and a small random drift so walking doesn't look like a rigid line.
  const dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;
- const sway=Math.sin(time*1.6+p.phase)*.65+p.side;
- p.dot.position.set(x-dz/len*sway,.24,z+dx/len*sway);
+ const sway=Math.sin(time*1.6+p.phase)*.12+p.side;
+ p.dot.position.set(x-dz/len*sway,.02,z+dx/len*sway);
+ p.dot.rotation.y=Math.atan2(dx,dz);
 })}
 const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*2-1;mouse.y=-((e.clientY-r.top)/r.height*2-1);raycaster.setFromCamera(mouse,camera);const hits=raycaster.intersectObjects(districtMeshes,false);if(hits.length){selectedDistrict=hits[0].object.userData.district;document.querySelector('#districtName').textContent=selectedDistrict.name;document.querySelector('#inspect').innerHTML=`<strong>${selectedDistrict.name}</strong><br>Район: ${selectedDistrict.type==='business'?'деловой':selectedDistrict.type==='industrial'?'промышленный':selectedDistrict.type==='civic'?'административный':'жилой'}<br>Население: ${(220+selectedDistrict.pts.length*86)} тыс.<br>Экономика: ${61+selectedDistrict.pts.length}%<br>Инфраструктура: ${54+selectedDistrict.pts.length*3}%<br>Экология: ${70-selectedDistrict.pts.length*2}%`;districtMeshes.forEach(m=>m.material.opacity=m.userData.district===selectedDistrict?.85:.56)}});
 function setLayer(id,fn){document.getElementById(id).addEventListener('change',fn)}
