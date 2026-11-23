@@ -29,6 +29,7 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Add deterministic static city details: facade window instancing, rooftop HVAC/vents, central crosswalk markings, sidewalk street lamps, storefront canopies, and civic entrance columns (built once with the map).
 - [x] Align storefront canopies/supports and civic columns/lintels to each building's street-facing facade (fixes fixed-side detailing).
 - [ ] Expand city streets, coherent block geometry, more buildings, distinct neighborhood landmarks and visual polish; 25-cell district grid and off-road parks now implemented, needs browser visual review.
+- [x] Remove sidewalk strips, curbs, and painted pedestrian crosswalks; pedestrians now use road-centered waypoints with slight deterministic variation.
 - [ ] Make citizen circles represent residents consistently, with grouping/interaction and readable activity state.
 
 ## Political simulation
