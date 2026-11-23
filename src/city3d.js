@@ -252,7 +252,7 @@ function auditCityLayout(){
   if(parkShapes.some(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);return !(b.x+b.w/2<Math.min(...xs)||b.x-b.w/2>Math.max(...xs)||b.z+b.h/2<Math.min(...zs)||b.z-b.h/2>Math.max(...zs))}))issues.push('building-park:'+i);
  });
  partyHeadquarters.forEach((h,i)=>{if(parkShapes.some(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);return !(h.x+2.8<Math.min(...xs)||h.x-2.8>Math.max(...xs)||h.z+2.4<Math.min(...zs)||h.z-2.4>Math.max(...zs))}))issues.push('hq-park:'+i);if(nearRoad(h.x,h.z,3.0))issues.push('hq-road:'+i)});
- const report={seed:CITY_LAYOUT_SEED,buildings:bldgs.length,parks:parkShapes.length,partyHQs:partyHeadquarters.length,buildingOverlaps:issues.filter(v=>v.startsWith('building:')).length,roadConflicts:issues.filter(v=>v.endsWith('-road:')).length,landmarkConflicts:issues.filter(v=>v.startsWith('building-hq:')||v.startsWith('building-park:')||v.startsWith('hq-park:')).length,issues};
+ const report={seed:CITY_LAYOUT_SEED,buildings:bldgs.length,parks:parkShapes.length,partyHQs:partyHeadquarters.length,buildingOverlaps:issues.filter(v=>v.startsWith('building:')).length,roadConflicts:issues.filter(v=>v.startsWith('building-road:')||v.startsWith('hq-road:')).length,landmarkConflicts:issues.filter(v=>v.startsWith('building-hq:')||v.startsWith('building-park:')||v.startsWith('hq-park:')).length,issues};
  window.cityMapAudit=report;console.info('[Republic map audit]',report);return report;
 }
 function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,zi]=pts[i],[xj,zj]=pts[j];if(((zi>z)!=(zj>z))&&(x<(xj-xi)*(z-zi)/(zj-zi)+xi))inside=!inside}return inside}
