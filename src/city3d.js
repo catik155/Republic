@@ -67,7 +67,7 @@ const mergeByStart=new Map(districtMerges.map(m=>[m.rows[0]*5+m.cols[0],m]));
 for(let row=0;row<5;row++)for(let col=0;col<5;col++){
  const key=row*5+col;if(covered.has(key)&&!mergeByStart.has(key))continue;
  const merge=mergeByStart.get(key),rows=merge?.rows??[row],cols=merge?.cols??[col];
- const r0=rows[0],r1=rows[rows.length-1],c0=cols[0],c1=cols[cols.length-1];
+ const r0=rows[0],r1=rows[rows.length-1]+1,c0=cols[0],c1=cols[cols.length-1]+1;
  const central=rows.includes(2)&&cols.includes(2),business=(row===1&&col===2)||(row===2&&col===3),industrial=rows.includes(3)&&cols.includes(2),civic=rows.includes(2)&&cols.includes(1);
  const type=central||business?'business':industrial?'industrial':civic?'civic':'residential';
  const colors=['#526e83','#557866','#607b8a','#52796f','#65746d','#54786d','#687d6a','#617a6e','#4d7167'];
