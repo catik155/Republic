@@ -91,7 +91,8 @@ districts.forEach((d,i)=>{
  const center=d.pts.reduce((acc,p)=>[acc[0]+p[0]/d.pts.length,acc[1]+p[1]/d.pts.length],[0,0]);const label=makeLabel(d.name);label.position.set(center[0],1.8,center[1]);city.add(label);
 });
 const asphalt=new THREE.MeshStandardMaterial({color:'#222c36',roughness:1});
-function road(x1,z1,x2,z2,width=3.1){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),angle=Math.atan2(dx,dz),cx=(x1+x2)/2,cz=(z1+z2)/2;const m=new THREE.Mesh(new THREE.BoxGeometry(width,.12,len),asphalt);m.position.set(cx,.06,cz);m.rotation.y=angle;m.receiveShadow=true;city.add(m)}
+const avenueAsphalt=new THREE.MeshStandardMaterial({color:'#29343e',roughness:1});
+function road(x1,z1,x2,z2,width=3.1){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),angle=Math.atan2(dx,dz),cx=(x1+x2)/2,cz=(z1+z2)/2;const m=new THREE.Mesh(new THREE.BoxGeometry(width,.12,len),width>=4?avenueAsphalt:asphalt);m.position.set(cx,.06,cz);m.rotation.y=angle;m.receiveShadow=true;city.add(m)}
 // Organic road plan: staggered arterials, angled links and short curved-like segmented streets.
 // Regular connected street grid: restore straight, aligned roads and clear intersections.
 const avenuePaths=[
@@ -104,7 +105,10 @@ const avenuePaths=[
  [[10,-43],[10,43]],
  [[30,-43],[30,43]]
 ];
-avenuePaths.forEach(path=>path.slice(0,-1).forEach((p,j)=>road(p[0],p[1],path[j+1][0],path[j+1][1],3.8)));
+avenuePaths.forEach((path,pathIndex)=>path.slice(0,-1).forEach((p,j)=>{
+ const arterial=pathIndex===1||pathIndex===2||pathIndex===5||pathIndex===6;
+ road(p[0],p[1],path[j+1][0],path[j+1][1],arterial?4.6:3.0);
+}));
 // City block/building placement: deterministic, fixed seed list, no random map generation.
 const parkShapes=[[[-39,-23],[-35,-24],[-33,-20],[-35,-17],[-39,-18]],[[-6,-23],[-2,-24],[0,-20],[-2,-17],[-6,-18]],[[33,18],[37,17],[39,21],[37,24],[33,23]]];
 const CITY_LAYOUT_SEED=20261123;
@@ -132,8 +136,9 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
  const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9],[-4.0,-2.8],[4.0,-2.6],[-3.8,3.7],[4.1,3.8],[-5.2,0],[5.2,0],[0,-5.2],[0,5.2]];
  variations.forEach(([dx,dz],k)=>{
   const x=bx+dx,z=bz+dz;if(Math.abs(x)>41||Math.abs(z)>43)return;
-  let floors=1+((idx*3+k*5)%6);if(district.type==='business')floors+=3;if(district.type==='industrial')floors=1+((idx+k)%3);
-  const w=2.25+((idx+k)%4)*.32,h=2.05+((idx*2+k)%4)*.28;
+  let floors=1+((idx*3+k*5)%6);if(district.type==='business')floors+=3;if(district.type==='industrial')floors=1+((idx+k)%3);if(district.type==='residential'&&((idx*5+k*3)%7===0))floors+=2;
+  const footprintBand=(idx*11+k*7)%6;
+  const w=2.8+footprintBand*.27+(k%3===0?.22:0),h=2.55+((idx*2+k*5)%6)*.23+(k%4===1?.18:0);
   // Keep building footprints clear of roads, neighboring buildings and civic/party landmarks.
   const roadClear=!nearRoad(x,z,Math.max(w,h)/2+.28);
   const buildingClear=bldgs.every(b=>Math.abs(x-b.x)>=(w+b.w)/2+.35||Math.abs(z-b.z)>=(h+b.h)/2+.35);
