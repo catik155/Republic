@@ -58,8 +58,7 @@ districts.forEach((d,i)=>{
  const center=d.pts.reduce((acc,p)=>[acc[0]+p[0]/d.pts.length,acc[1]+p[1]/d.pts.length],[0,0]);const label=makeLabel(d.name);label.position.set(center[0],1.8,center[1]);city.add(label);
 });
 const asphalt=new THREE.MeshStandardMaterial({color:'#222c36',roughness:1});
-const sidewalkMat=new THREE.MeshStandardMaterial({color:'#39444f',roughness:1});
-function road(x1,z1,x2,z2,width=3.1){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),angle=Math.atan2(dx,dz),cx=(x1+x2)/2,cz=(z1+z2)/2;const m=new THREE.Mesh(new THREE.BoxGeometry(width,.12,len),asphalt);m.position.set(cx,.06,cz);m.rotation.y=angle;m.receiveShadow=true;city.add(m);const curbW=.18,walkW=1.25;for(const side of [-1,1]){const walk=new THREE.Mesh(new THREE.BoxGeometry(walkW,.09,len),sidewalkMat);walk.position.set(cx,.13,cz);walk.rotation.y=angle;walk.translateX(side*(width/2+curbW+walkW/2));walk.receiveShadow=true;city.add(walk);const curb=new THREE.Mesh(new THREE.BoxGeometry(curbW,.16,len),sidewalkMat);curb.position.set(cx,.12,cz);curb.rotation.y=angle;curb.translateX(side*(width/2+curbW/2));city.add(curb)}}
+function road(x1,z1,x2,z2,width=3.1){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),angle=Math.atan2(dx,dz),cx=(x1+x2)/2,cz=(z1+z2)/2;const m=new THREE.Mesh(new THREE.BoxGeometry(width,.12,len),asphalt);m.position.set(cx,.06,cz);m.rotation.y=angle;m.receiveShadow=true;city.add(m)}
 // Organic road plan: staggered arterials, angled links and short curved-like segmented streets.
 // Regular connected street grid: restore straight, aligned roads and clear intersections.
 const avenuePaths=[
@@ -186,16 +185,6 @@ bldgs.forEach((b,bi)=>{
  if(bi%4===0){const roofY=b.floors*1.25+.32;const ventMat=new THREE.MeshStandardMaterial({color:'#293744',roughness:.88});const vent=new THREE.Mesh(new THREE.BoxGeometry(.65,.45,.55),ventMat);vent.position.set(b.x+b.w*.22,roofY,b.z+b.h*.12);vent.castShadow=true;city.add(vent);const ventCap=new THREE.Mesh(new THREE.BoxGeometry(.75,.08,.65),new THREE.MeshStandardMaterial({color:'#5c6a75',roughness:.8}));ventCap.position.set(vent.position.x,roofY+.25,vent.position.z);city.add(ventCap);}
 });
 facadeWindowFront.count=frontWindowCount;facadeWindowSide.count=sideWindowCount;facadeWindowFront.instanceMatrix.needsUpdate=true;facadeWindowSide.instanceMatrix.needsUpdate=true;city.add(facadeWindowFront,facadeWindowSide);
-// A few raised crosswalk markings at the central civic intersections.
-const markingMat=new THREE.MeshStandardMaterial({color:'#a8b4bd',roughness:1});
-[-10,10].forEach(x=>[-10,10].forEach(z=>{
- for(let stripe=0;stripe<5;stripe++){
-  const mark=new THREE.Mesh(new THREE.BoxGeometry(.42,.035,2.6),markingMat);mark.position.set(x-3.2+stripe*1.35,.16,z-5.3);city.add(mark);
- }
- for(let stripe=0;stripe<5;stripe++){
-  const mark=new THREE.Mesh(new THREE.BoxGeometry(2.6,.035,.42),markingMat);mark.position.set(x-5.3,.16,z-3.2+stripe*1.35);city.add(mark);
- }
-}));
 // Warm street lamps live along sidewalks rather than in the carriageway.
 const lampMetal=new THREE.MeshStandardMaterial({color:'#344553',roughness:.7}),lampGlow=new THREE.MeshStandardMaterial({color:'#e4c98b',emissive:'#e4c98b',emissiveIntensity:.75});
 const lampPoleGeo=new THREE.CylinderGeometry(.07,.11,3.4,6),lampHeadGeo=new THREE.BoxGeometry(.45,.16,.32);
@@ -243,8 +232,8 @@ const people=new THREE.Group();scene.add(people);
 const pedestrianPalette=['#4a91ff','#d35a66','#d9b65c','#a681df','#86a0b9'];
 const pedestrianRecords=[];
 const walkNodes=[];const grid=[-30,-10,10,30];
-// Sidewalk waypoints offset from junction centers to prevent pedestrians appearing in crossings.
-grid.forEach((z,row)=>grid.forEach((x,col)=>{const sx=col%2===0?1:-1,sz=row%2===0?-1:1;walkNodes.push([x+sx*2.45,z+sz*2.45])}));
+// Road-centered waypoints with slight deterministic irregularity; pedestrians are not restricted to sidewalk paths.
+grid.forEach((z,row)=>grid.forEach((x,col)=>{const seed=row*4+col,ox=Math.sin(seed*17.31+2.7)*.72,oz=Math.cos(seed*9.17+1.4)*.72;walkNodes.push([x+ox,z+oz])}));
 const walkAdj=walkNodes.map(()=>[]);
 const walkLinks=[];
 for(let row=0;row<4;row++)for(let col=0;col<4;col++){const i=row*4+col;if(col<3)walkLinks.push([i,i+1]);if(row<3)walkLinks.push([i,i+4])}
