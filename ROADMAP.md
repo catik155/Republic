@@ -18,7 +18,7 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Keep transparent district overlays from writing depth and hiding pedestrians; move pedestrian start waypoints off intersection centers.
 - [x] Split district overlay into 25 grid cells and rename regions by location; avoid falsely calling a district 'Riverside' when no river is present.
 - [x] Merge selected adjacent grid cells into larger multi-cell districts; some districts now cover 2–4 cells while preserving city coverage.
-- [x] Generate a refreshed deterministic city layout from a versioned map seed; validate building footprints against roads, each other, parks, party headquarters and the government landmark, and expose a startup map-audit report.
+- [x] Generate a refreshed deterministic city layout from a versioned map seed; audit building, road, park, party-HQ and government-landmark conflicts at startup, plus park fixtures and street-lamp placement/overlaps; skip obstructed lamp positions and expose the report as `window.cityMapAudit`.
 - [x] Replace the perfectly square district grid with a wider, tapered urban footprint and shared irregular block boundaries; keep adjacent district edges aligned.
 - [x] Introduce a clearer street hierarchy (wide arterial roads and narrower neighborhood streets) and increase deterministic variation in building footprints and residential heights.
 - [x] Move parks into block interiors, away from the road center lines.
