@@ -36,6 +36,18 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Remove sidewalk strips, curbs, and painted pedestrian crosswalks; pedestrians now use road-centered waypoints with slight deterministic variation.
 - [ ] Make citizen circles represent residents consistently, with grouping/interaction and readable activity state.
 
+## Construction and city development
+- [ ] Add a construction mode on the 3D map: select a parcel and preview the footprint before confirming placement.
+- [ ] Building catalog: housing, shops/offices, factories/workshops, schools, clinics, parks and public facilities.
+- [ ] Enforce placement rules: land/buildable area, road access, district boundaries, occupied footprints, parks, landmarks and minimum spacing.
+- [ ] Charge construction costs to the national budget; show costs, upkeep, construction time and affordability before placement.
+- [ ] Add construction progress and completion; unfinished sites should be visible and should not function as completed buildings.
+- [ ] Give completed buildings simulation effects: housing capacity/population, jobs/unemployment, commerce/tax income, services, infrastructure and district indicators.
+- [ ] Add demolition, upgrades and relocation/refund rules with confirmation and audit checks.
+- [ ] Persist player-built city objects across reloads and include them in save/multiplayer synchronization.
+- [ ] Add city planning tools: zoning, road extensions, utilities and public transport as later development stages.
+- [ ] Verify construction on desktop/mobile and ensure it never hides or breaks the map.
+
 ## Political simulation
 - [x] Multiple parties, support, ideology and colors; AI opponents act independently.
 - [x] Campaign action choices: rally, media campaign, resident outreach.
