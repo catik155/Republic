@@ -76,7 +76,7 @@ for(let row=0;row<5;row++)for(let col=0;col<5;col++){
 }
 const politicalColors=['#3e83e6','#bd4f5c','#c6a14b','#8962bf','#6d8395'];
 let showDistricts=true, selectedDistrict=null;
-function shapeFromPolygon(points){const shape=new THREE.Shape();points.forEach(([x,z],i)=>i?shape.lineTo(x,-z):shape.moveTo(x,-z));shape.closePath();return shape}
+function shapeFromPolygon(points){const shape=new THREE.Shape();if(!Array.isArray(points)||points.length<3)throw new Error('Invalid district polygon: expected at least 3 points');points.forEach(([x,z],i)=>i?shape.lineTo(x,-z):shape.moveTo(x,-z));const [firstX,firstZ]=points[0];shape.lineTo(firstX,-firstZ);return shape}
 function makeLabel(text){
  const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);g.font='bold 42px Segoe UI';g.textAlign='center';g.fillStyle='#d3deeb';g.shadowColor='#080c11';g.shadowBlur=8;g.fillText(text,256,75);
  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false});const spr=new THREE.Sprite(mat);spr.scale.set(18,4.5,1);return spr
@@ -266,7 +266,7 @@ const govSign=makeLabel('ПРАВИТЕЛЬСТВО');govSign.scale.set(17,4,1);
 const parkMat=new THREE.MeshStandardMaterial({color:'#233d32',roughness:1});
 const parkFixtures=[];
 
-parkShapes.forEach((points,parkIndex)=>{const g=new THREE.Shape();points.forEach(([x,z],i)=>i?g.lineTo(x,-z):g.moveTo(x,-z));g.closePath();const geom=new THREE.ShapeGeometry(g);geom.rotateX(-Math.PI/2);const m=new THREE.Mesh(geom,parkMat);m.position.y=.14;city.add(m);
+parkShapes.forEach((points,parkIndex)=>{const g=new THREE.Shape();if(!Array.isArray(points)||points.length<3)throw new Error('Invalid park polygon: expected at least 3 points');points.forEach(([x,z],i)=>i?g.lineTo(x,-z):g.moveTo(x,-z));const [firstX,firstZ]=points[0];g.lineTo(firstX,-firstZ);const geom=new THREE.ShapeGeometry(g);geom.rotateX(-Math.PI/2);const m=new THREE.Mesh(geom,parkMat);m.position.y=.14;city.add(m);
  // Fixed park furniture: benches and trees are part of the persistent city scene.
  const center=points.reduce((sum,p)=>[sum[0]+p[0]/points.length,sum[1]+p[1]/points.length],[0,0]);
  const benchWood=new THREE.MeshStandardMaterial({color:'#695342',roughness:.9}),benchMetal=new THREE.MeshStandardMaterial({color:'#313e49',roughness:.85});
