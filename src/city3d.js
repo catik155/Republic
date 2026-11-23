@@ -334,6 +334,66 @@ const dotMaterials=pedestrianPalette.map(color=>new THREE.SpriteMaterial({map:ma
 const pedestrianAdmin={count:110,talkChance:.12,talkDistance:.9,talkCooldown:25};
 for(let k=0;k<150;k++){const start=Math.floor(seededValue(k+123)*walkNodes.length),dot=new THREE.Sprite(dotMaterials[k%5].clone());dot.scale.set(.95,.95,1);dot.position.y=.48;dot.visible=k<pedestrianAdmin.count;people.add(dot);const bubble=new THREE.Sprite(talkMaterial.clone());bubble.scale.set(1.3,.95,1);bubble.position.y=1.7;bubble.visible=false;dot.add(bubble);const homeBuilding=Math.floor(seededValue(k+71)*homeBuildings.length),homeNode=homeNodes[homeBuilding]??Math.floor(seededValue(k+71)*walkNodes.length),routine=chooseOuting(homeNode,k+97),outing=routine.outing,dest=routine.destination;pedestrianRecords.push({dot,bubble,node:start,previous:-1,homeBuilding,homeNode,outing,activity:routine.activity,destination:dest,target:pickNextNode(start,-1,k+91,dest),progress:seededValue(k+5)*.45,speed:.32+seededValue(k+19)*.28,offset:seededValue(k+23)*3.4-1.7,offsetCurrent:seededValue(k+23)*3.4-1.7,phase:seededValue(k+37)*Math.PI*2,seed:k,lastTime:0,life:'walking',homeUntil:0,talkUntil:0,nextTalkAt:0,opacity:1})}
 function movePedestrians(time){pedestrianRecords.forEach(p=>{const dt=Math.max(0,time-(p.lastTime??time));p.lastTime=time;if(p.life==='inside'){p.dot.visible=false;p.bubble.visible=false;if(time>=p.homeUntil){p.homeBuilding=Math.floor(seededValue(p.seed+time*29+5)*homeBuildings.length);const home=homeBuildings[p.homeBuilding],node=homeNodes[p.homeBuilding]??Math.floor(seededValue(p.seed+time*29+5)*walkNodes.length);p.homeNode=node;p.node=node;p.previous=-1;const routine=chooseOuting(node,p.seed+time*31);p.outing=routine.outing;p.activity=routine.activity;p.destination=routine.destination;p.target=pickNextNode(node,-1,p.seed+Math.floor(time*3),p.destination);p.progress=0;p.offset=0;p.offsetCurrent=0;p.life='leaving';p.leaveStart=[home?.entryX??walkNodes[node][0],home?.entryZ??walkNodes[node][1]];p.leaveUntil=time+.9;p.dot.visible=true;p.opacity=0;p.dot.material.opacity=0;p.dot.position.set(p.leaveStart[0],.48,p.leaveStart[1])}return}if(p.life==='leaving'){const homeNode=walkNodes[p.node],duration=.9,t=Math.max(0,Math.min(1,1-(p.leaveUntil-time)/duration));p.dot.position.set(p.leaveStart[0]+(homeNode[0]-p.leaveStart[0])*t,.48,p.leaveStart[1]+(homeNode[1]-p.leaveStart[1])*t);p.opacity=t;p.dot.material.opacity=t;if(time>=p.leaveUntil){p.life='walking';p.opacity=1;p.dot.material.opacity=1;p.dot.position.set(homeNode[0],.48,homeNode[1])}return}if(p.life==='entering'){p.bubble.visible=false;const enterDuration=1.25,enterT=Math.max(0,Math.min(1,1-(p.homeUntil-time)/enterDuration));if(p.enterStart&&p.enterDoor){p.dot.position.set(p.enterStart[0]+(p.enterDoor[0]-p.enterStart[0])*enterT,.48,p.enterStart[1]+(p.enterDoor[1]-p.enterStart[1])*enterT)}p.opacity=Math.max(0,1-Math.max(0,enterT-.78)/.22);p.dot.material.opacity=p.opacity;if(time>=p.homeUntil){p.life='inside';p.homeUntil=time+2.5+seededValue(p.seed+time*7)*7;p.dot.visible=false;return}return}if(p.life==='idle'){p.bubble.visible=false;if(time>=p.homeUntil){p.life='walking';p.destination=p.homeNode;p.target=pickNextNode(p.node,-1,p.seed+Math.floor(time*5),p.destination);p.progress=0;p.previous=-1;p.offset=0;p.offsetCurrent=0}return}if(p.life==='talking'&&time<p.talkUntil){p.progress=0;p.bubble.visible=true;return}else if(p.life==='talking'){p.life='walking';p.bubble.visible=false}p.progress+=p.speed*dt*1.6;p.offsetCurrent+=(p.offset-p.offsetCurrent)*Math.min(1,dt*2.4);if(p.opacity<1){p.opacity=Math.min(1,p.opacity+dt*2.5);p.dot.material.opacity=p.opacity}if(p.progress>=1){p.progress%=1;p.previous=p.node;p.node=p.target;if(p.node===p.destination){p.progress=0;if(p.outing&&p.destination!==p.homeNode){p.life='idle';const stopDuration=p.activity==='park'?8+seededValue(p.seed+time*9)*12:p.activity==='shop'?5+seededValue(p.seed+time*9)*9:p.activity==='civic'?4+seededValue(p.seed+time*9)*8:6+seededValue(p.seed+time*9)*10;p.homeUntil=time+stopDuration;p.bubble.visible=false}else{p.life='entering';const home=homeBuildings[p.homeBuilding];p.enterStart=[p.dot.position.x,p.dot.position.z];p.enterDoor=[home?.entryX??walkNodes[p.node][0],home?.entryZ??walkNodes[p.node][1]];p.bubble.visible=false;p.homeUntil=time+1.25}}else{p.target=pickNextNode(p.node,p.previous,p.seed+Math.floor(time*3),p.destination);p.offset=seededValue(p.seed+time*2)*3.4-1.7}}if(p.life==='entering'&&time>=p.homeUntil){p.life='inside';p.homeUntil=time+2.5+seededValue(p.seed+time*7)*7;p.dot.material.opacity=0;p.dot.visible=false;return}const a=walkNodes[p.node],b=walkNodes[p.target],t=p.progress,dx=b[0]-a[0],dz=b[1]-a[1],len=Math.hypot(dx,dz)||1;const wave=Math.sin(time*2.2+p.phase)*.42+Math.sin(time*4.1+p.phase*.7)*.13;const lateral=Math.max(-1.72,Math.min(1.72,p.offsetCurrent+wave));const x=a[0]+dx*t-dz/len*lateral,z=a[1]+dz*t+dx/len*lateral;p.dot.position.set(x,.48,z);p.bubble.visible=false});for(let i=0;i<pedestrianAdmin.count;i++){const a=pedestrianRecords[i];if(a.life!=='walking'||a.dot.visible===false)continue;for(let j=i+1;j<pedestrianAdmin.count;j++){const b=pedestrianRecords[j];if(b.life!=='walking'||!b.dot.visible)continue;if(Math.hypot(a.dot.position.x-b.dot.position.x,a.dot.position.z-b.dot.position.z)<pedestrianAdmin.talkDistance&&time>=a.nextTalkAt&&time>=b.nextTalkAt&&seededValue(a.seed*31+b.seed*17+Math.floor(time*.5))<pedestrianAdmin.talkChance){a.life=b.life='talking';a.talkUntil=b.talkUntil=time+0.8+seededValue(a.seed+b.seed+time)*1.2;a.nextTalkAt=b.nextTalkAt=time+pedestrianAdmin.talkCooldown;a.bubble.visible=b.bubble.visible=true;break}}}}
+const buildRaycaster=new THREE.Raycaster(),buildPointer=new THREE.Vector2();
+let constructionMode=false,constructionType='residential';
+const buildCatalog={
+ residential:{label:'Жилой дом',cost:3.2,color:'#647b89',floors:3,w:3.8,h:3.4,kind:'residential'},
+ business:{label:'Магазин / офис',cost:2.4,color:'#8a795d',floors:2,w:3.6,h:3.2,kind:'business'},
+ industrial:{label:'Предприятие',cost:5.5,color:'#68756d',floors:2,w:4.2,h:3.8,kind:'industrial'},
+ civic:{label:'Общественное здание',cost:4.2,color:'#7b7189',floors:2,w:3.8,h:3.6,kind:'civic'}
+};
+const builtObjects=[];
+function saveBuiltObjects(){try{localStorage.setItem('republic-built-buildings-v1',JSON.stringify(builtObjects))}catch{}}
+function createPlayerBuilding(record){
+ const spec=buildCatalog[record.type];if(!spec)return null;
+ const district=districts.find(d=>pointInPolygon([record.x,record.z],d.pts));if(!district)return null;
+ const material=new THREE.MeshStandardMaterial({color:spec.color,roughness:.86});
+ const geometry=new THREE.BoxGeometry(spec.w,spec.floors*1.25,spec.h);
+ const mesh=new THREE.Mesh(geometry,material);mesh.position.set(record.x,spec.floors*.625+.12,record.z);mesh.castShadow=true;mesh.receiveShadow=true;city.add(mesh);
+ const roof=new THREE.Mesh(new THREE.BoxGeometry(spec.w+.2,.18,spec.h+.2),new THREE.MeshStandardMaterial({color:'#465563',roughness:.9}));roof.position.set(record.x,spec.floors*1.25+.2,record.z);roof.castShadow=true;city.add(roof);
+ const door=new THREE.Mesh(new THREE.BoxGeometry(.58,.95,.09),new THREE.MeshStandardMaterial({color:'#263342',roughness:.9}));door.position.set(record.x+spec.w/2+.05,.52,record.z);door.rotation.y=Math.PI/2;city.add(door);
+ const b={...record,mesh,district,floors:spec.floors,kind:spec.kind,w:spec.w,h:spec.h,entryX:record.x+spec.w/2,entryZ:record.z,playerBuilt:true};
+ bldgs.push(b);return b;
+}
+try{const saved=JSON.parse(localStorage.getItem('republic-built-buildings-v1')||'[]');if(Array.isArray(saved))saved.forEach(record=>{if(buildCatalog[record.type]&&Number.isFinite(record.x)&&Number.isFinite(record.z))createPlayerBuilding(record)})}catch{}
+function canBuildAt(x,z,spec){
+ const candidate={x,z,w:spec.w,h:spec.h};
+ if(!districts.some(d=>pointInPolygon([x,z],d.pts)))return'За пределами городских районов';
+ if(Math.abs(x)>42||Math.abs(z)>36)return'За пределами доступной территории';
+ if(nearRoad(x,z,Math.max(spec.w,spec.h)/2+.2))return'Слишком близко к проезжей части';
+ if(!avenuePaths.some(path=>path.slice(0,-1).some((p,i)=>distanceToSegment(x,z,p,path[i+1])<8.5)))return'Нет доступа к улице';
+ if(bldgs.some(b=>Math.abs(x-b.x)<(spec.w+b.w)/2+.5&&Math.abs(z-b.z)<(spec.h+b.h)/2+.5))return'Участок уже занят зданием';
+ if(partyHeadquarters.some(h=>Math.abs(x-h.x)<spec.w/2+3.1&&Math.abs(z-h.z)<spec.h/2+2.7))return'Рядом находится штаб партии';
+ if(Math.abs(x)<spec.w/2+5&&Math.abs(z)<spec.h/2+4.6)return'Нельзя строить рядом со зданием правительства';
+ if(parkShapes.some(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);return !(x+spec.w/2+.5<Math.min(...xs)||x-spec.w/2-.5>Math.max(...xs)||z+spec.h/2+.5<Math.min(...zs)||z-spec.h/2-.5>Math.max(...zs))}))return'Участок занят парком';
+ return'';
+}
+function setConstructionMode(enabled,type){
+ constructionMode=!!enabled;if(type&&buildCatalog[type])constructionType=type;
+ controls.enabled=!constructionMode;
+ canvas.style.cursor=constructionMode?'crosshair':'grab';
+ toast(constructionMode?'Режим строительства: выберите свободный участок':'Режим строительства выключен');
+}
+window.RepublicCityConstruction={
+ setMode:setConstructionMode,
+ getCatalog:()=>Object.fromEntries(Object.entries(buildCatalog).map(([key,v])=>[key,{label:v.label,cost:v.cost}])),
+ getBuildings:()=>bldgs.length,
+};
+canvas.addEventListener('pointerdown',e=>{
+ if(!constructionMode||e.button!==0)return;
+ e.stopImmediatePropagation();
+ const rect=canvas.getBoundingClientRect();buildPointer.x=(e.clientX-rect.left)/rect.width*2-1;buildPointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
+ buildRaycaster.setFromCamera(buildPointer,camera);
+ const hits=buildRaycaster.intersectObject(floor,false);if(!hits.length)return;
+ const x=Math.round(hits[0].point.x*2)/2,z=Math.round(hits[0].point.z*2)/2,spec=buildCatalog[constructionType];
+ const problem=canBuildAt(x,z,spec);if(problem){toast(problem);return}
+ const cost=spec.cost,state=window.republicState;
+ if(!state||state.budget<cost){toast('Недостаточно средств. Нужно ₽'+cost.toFixed(1)+' млрд');return}
+ state.budget-=cost;
+ const record={type:constructionType,x,z,cost};
+ if(createPlayerBuilding(record)){builtObjects.push(record);saveBuiltObjects();window.dispatchEvent(new CustomEvent('republic:buildingbuilt',{detail:{...record,label:spec.label}}));window.dispatchEvent(new Event('republic:adminchange'));toast(spec.label+' построен за ₽'+cost.toFixed(1)+' млрд')}
+ else{state.budget+=cost;toast('Не удалось разместить здание')}
+});
 const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)/r.width*2-1;mouse.y=-((e.clientY-r.top)/r.height*2-1);raycaster.setFromCamera(mouse,camera);const hits=raycaster.intersectObjects(districtMeshes,false);if(hits.length){selectedDistrict=hits[0].object.userData.district;document.querySelector('#districtName').textContent=selectedDistrict.name;const localBuildings=bldgs.filter(b=>b.district===selectedDistrict),capacity=b=>b.floors*(b.kind==='residential'?3:b.kind==='business'?1.5:b.kind==='industrial'?2:1),allCapacity=bldgs.reduce((sum,b)=>sum+capacity(b),0)||1,districtCapacity=localBuildings.reduce((sum,b)=>sum+capacity(b),0),population=Math.round(((window.republicState?.people??8.7)*1000)*districtCapacity/allCapacity),residential=localBuildings.filter(b=>b.kind==='residential').length,commercial=localBuildings.filter(b=>b.kind==='business').length,roadAccess=walkNodes.filter(([x,z])=>pointInPolygon([x,z],selectedDistrict.pts)).length,greenSpace=parkShapes.filter(points=>pointInPolygon(points.reduce((a,p)=>[a[0]+p[0]/points.length,a[1]+p[1]/points.length],[0,0]),selectedDistrict.pts)).length,economy=Math.min(95,Math.round(40+commercial*1.2+localBuildings.length*.3)),infrastructure=Math.min(95,Math.round(35+roadAccess*9+localBuildings.length*.45)),ecology=Math.max(20,Math.min(95,Math.round(64+greenSpace*12-residential*0.18)));document.querySelector('#inspect').innerHTML=`<strong>${selectedDistrict.name}</strong><br>Тип: ${selectedDistrict.type==='business'?'деловой':selectedDistrict.type==='industrial'?'промышленный':selectedDistrict.type==='civic'?'административный':'жилой'}<br>Население (оценка): ${population.toLocaleString('ru-RU')} тыс.<br><span style="color:#91a7bd;font-size:11px">Пешеходы на карте — выборочные агенты, не все жители</span><br>Здания: ${localBuildings.length} (жилые ${residential})<br>Коммерческие: ${commercial}<br>Экономика: ${economy}%<br>Инфраструктура: ${infrastructure}%<br>Экология: ${ecology}%<br>Политический лидер: ${politicalWinnerForDistrict(districtMeshes.indexOf(hits[0].object)).name} (${politicalWinnerForDistrict(districtMeshes.indexOf(hits[0].object)).share.toFixed(1)}%)`;districtMeshes.forEach(m=>m.material.opacity=(m.userData.district===selectedDistrict)?0.85:0.56)}});
 function setLayer(id,fn){document.getElementById(id).addEventListener('change',fn)}
 setLayer('showPeople',()=>people.visible=document.getElementById('showPeople').checked);
