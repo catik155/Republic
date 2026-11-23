@@ -86,7 +86,7 @@ const avenuePaths=[
 ];
 avenuePaths.forEach(path=>path.slice(0,-1).forEach((p,j)=>road(p[0],p[1],path[j+1][0],path[j+1][1],3.8)));
 // City block/building placement: deterministic, fixed seed list, no random map generation.
-const parkShapes=[[[-39,-23],[-35,-24],[-33,-20],[-35,-17],[-39,-18]],[[-19,-23],[-15,-24],[-13,-20],[-15,-17],[-19,-18]],[[18,18],[22,17],[24,21],[22,24],[18,23]]];
+const parkShapes=[[[-39,-23],[-35,-24],[-33,-20],[-35,-17],[-39,-18]],[[-6,-23],[-2,-24],[0,-20],[-2,-17],[-6,-18]],[[33,18],[37,17],[39,21],[37,24],[33,23]]];
 const CITY_LAYOUT_SEED=20261123;
 function layoutNoise(index,axis){const n=Math.sin((CITY_LAYOUT_SEED+index*91.7+axis*173.3)*.0174533)*43758.5453;return(n-Math.floor(n))*2-1}
 const blockCenters=[
@@ -251,7 +251,8 @@ function auditCityLayout(){
   if(partyHeadquarters.some(h=>Math.abs(b.x-h.x)<(b.w+5.6)/2+.35&&Math.abs(b.z-h.z)<(b.h+4.8)/2+.35))issues.push('building-hq:'+i);
   if(parkShapes.some(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);return !(b.x+b.w/2<Math.min(...xs)||b.x-b.w/2>Math.max(...xs)||b.z+b.h/2<Math.min(...zs)||b.z-b.h/2>Math.max(...zs))}))issues.push('building-park:'+i);
  });
- const report={seed:CITY_LAYOUT_SEED,buildings:bldgs.length,parks:parkShapes.length,partyHQs:partyHeadquarters.length,buildingOverlaps:issues.filter(v=>v.startsWith('building:')).length,roadConflicts:issues.filter(v=>v.startsWith('building-road:')).length,landmarkConflicts:issues.filter(v=>v.startsWith('building-hq:')||v.startsWith('building-park:')).length,issues};
+ partyHeadquarters.forEach((h,i)=>{if(parkShapes.some(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);return !(h.x+2.8<Math.min(...xs)||h.x-2.8>Math.max(...xs)||h.z+2.4<Math.min(...zs)||h.z-2.4>Math.max(...zs))}))issues.push('hq-park:'+i);if(nearRoad(h.x,h.z,3.0))issues.push('hq-road:'+i)});
+ const report={seed:CITY_LAYOUT_SEED,buildings:bldgs.length,parks:parkShapes.length,partyHQs:partyHeadquarters.length,buildingOverlaps:issues.filter(v=>v.startsWith('building:')).length,roadConflicts:issues.filter(v=>v.endsWith('-road:')).length,landmarkConflicts:issues.filter(v=>v.startsWith('building-hq:')||v.startsWith('building-park:')||v.startsWith('hq-park:')).length,issues};
  window.cityMapAudit=report;console.info('[Republic map audit]',report);return report;
 }
 function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,zi]=pts[i],[xj,zj]=pts[j];if(((zi>z)!=(zj>z))&&(x<(xj-xi)*(z-zi)/(zj-zi)+xi))inside=!inside}return inside}
