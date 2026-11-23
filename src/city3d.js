@@ -343,8 +343,22 @@ function politicalWinnerForDistrict(i){const state=window.republicState,support=
 layerIds.forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(document.getElementById(id).checked)layerIds.filter(other=>other!==id).forEach(other=>document.getElementById(other).checked=false);applyLayer()}));
 document.querySelector('#toggleDistrict').onclick=()=>{showDistricts=!showDistricts;districtMeshes.forEach(m=>m.visible=showDistricts);toast(showDistricts?'Районы отображены':'Заливка районов скрыта')};
 document.querySelector('#resetCamera').onclick=()=>{camera.position.set(54,66,68);controls.target.set(0,0,0);controls.update()};
-function fitCanvas(){const r=canvas.getBoundingClientRect();const w=Math.max(1,r.width||canvas.parentElement?.clientWidth||window.innerWidth);const h=Math.max(1,r.height||canvas.parentElement?.clientHeight||window.innerHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
-window.addEventListener('resize',fitCanvas);if(typeof ResizeObserver!=='undefined'){const mapResizeObserver=new ResizeObserver(()=>fitCanvas());mapResizeObserver.observe(canvas.parentElement)}requestAnimationFrame(fitCanvas);
+function fitCanvas(){
+ const host=canvas.parentElement;
+ const r=host.getBoundingClientRect();
+ const w=Math.max(1,Math.round(r.width||host.clientWidth||window.innerWidth));
+ const h=Math.max(1,Math.round(r.height||host.clientHeight||window.innerHeight-60));
+ if(canvas.width!==Math.round(w*renderer.getPixelRatio())||canvas.height!==Math.round(h*renderer.getPixelRatio())||camera.aspect!==w/h){
+  renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+ }
+}
+window.addEventListener('resize',fitCanvas);
+window.addEventListener('orientationchange',()=>requestAnimationFrame(fitCanvas));
+window.addEventListener('pageshow',()=>requestAnimationFrame(fitCanvas));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)requestAnimationFrame(fitCanvas)});
+if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>requestAnimationFrame(fitCanvas));
+if(typeof ResizeObserver!=='undefined'){const mapResizeObserver=new ResizeObserver(()=>requestAnimationFrame(fitCanvas));mapResizeObserver.observe(canvas.parentElement)}
+fitCanvas();requestAnimationFrame(()=>requestAnimationFrame(fitCanvas));
 const adminPanel=document.querySelector('#adminPanel');
 const adminOpen=document.querySelector('#adminOpen'),adminClose=document.querySelector('#adminClose');
 const residentSlider=document.querySelector('#adminResidents'),talkChanceSlider=document.querySelector('#adminTalkChance'),talkDistanceSlider=document.querySelector('#adminTalkDistance'),talkCooldownSlider=document.querySelector('#adminTalkCooldown');
