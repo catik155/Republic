@@ -27,8 +27,8 @@ const city=new THREE.Group();scene.add(city);
 const floor=new THREE.Mesh(new THREE.PlaneGeometry(160,144),new THREE.MeshStandardMaterial({color:'#101923',roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.5;floor.receiveShadow=true;city.add(floor);
 // The urban footprint is deliberately wider than it is deep, with tapered corners
 // and subtly irregular shared block corners instead of a perfect square grid.
-const districtXBounds=[-48,-29,-10,10,30,48];
-const districtZBounds=[-40,-24,-7,9,25,40];
+const districtXBounds=[-48,-30,-10,10,30,48];
+const districtZBounds=[-48,-30,-10,10,30,48];
 const districtVertex=(row,col)=>{
  const x=districtXBounds[col],z=districtZBounds[row];
  const cornerTaper=1-.17*Math.pow(Math.abs(z)/40,4);
@@ -133,7 +133,7 @@ function nearRoad(px,pz,buildingRadius=1.7){for(let pathIndex=0;pathIndex<avenue
 blockCenters.forEach(([baseX,baseZ],idx)=>{
  const bx=baseX+Math.sin(idx*12.9898)*1.6+layoutNoise(idx,1)*1.15,bz=baseZ+Math.cos(idx*7.233)*1.5+layoutNoise(idx,2)*1.15;
  const district=districts.find(d=>pointInPolygon([bx,bz],d.pts))||districts[4];
- const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9],[-4.0,-2.8],[4.0,-2.6],[-3.8,3.7],[4.1,3.8],[-5.2,0],[5.2,0],[0,-5.2],[0,5.2]];
+ const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9],[-4.0,-2.8],[4.0,-2.6],[-3.8,3.7],[4.1,3.8],[-5.2,0],[5.2,0],[0,-5.2],[0,5.2],[-6.0,-4.5],[6.0,-4.5],[-6.0,4.5],[6.0,4.5],[-2.8,-6.2],[2.8,6.2]];
  variations.forEach(([dx,dz],k)=>{
   const x=bx+dx,z=bz+dz;if(Math.abs(x)>41||Math.abs(z)>43)return;
   let floors=1+((idx*3+k*5)%6);if(district.type==='business')floors+=3;if(district.type==='industrial')floors=1+((idx+k)%3);if(district.type==='residential'&&((idx*5+k*3)%7===0))floors+=2;
