@@ -18,14 +18,34 @@ const scene=new THREE.Scene();
 scene.background=new THREE.Color('#080e15');
 scene.fog=new THREE.Fog('#080e15',85,155);
 const camera=new THREE.PerspectiveCamera(42,initialWidth/initialHeight,.1,280);
-camera.position.set(48,62,68);
+camera.position.set(54,66,68);
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.target.set(0,0,0);controls.enableDamping=true;controls.dampingFactor=.06;controls.maxPolarAngle=Math.PI*.46;controls.minDistance=28;controls.maxDistance=145;
 scene.add(new THREE.HemisphereLight(0x9bb8d5,0x182019,2.1));
 const sun=new THREE.DirectionalLight(0xb8d0e9,2.6);sun.position.set(-35,55,25);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-65;sun.shadow.camera.right=65;sun.shadow.camera.top=65;sun.shadow.camera.bottom=-65;scene.add(sun);
 const city=new THREE.Group();scene.add(city);
-const floor=new THREE.Mesh(new THREE.PlaneGeometry(148,148),new THREE.MeshStandardMaterial({color:'#101923',roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.5;floor.receiveShadow=true;city.add(floor);
-const districtBounds=[-42,-25,-8,9,26,42];
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(160,144),new THREE.MeshStandardMaterial({color:'#101923',roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-.5;floor.receiveShadow=true;city.add(floor);
+// The urban footprint is deliberately wider than it is deep, with tapered corners
+// and subtly irregular shared block corners instead of a perfect square grid.
+const districtXBounds=[-48,-29,-10,10,30,48];
+const districtZBounds=[-40,-24,-7,9,25,40];
+const districtVertex=(row,col)=>{
+ const x=districtXBounds[col],z=districtZBounds[row];
+ const cornerTaper=1-.17*Math.pow(Math.abs(z)/40,4);
+ const depthTaper=1-.13*Math.pow(Math.abs(x)/48,4);
+ const edgeX=x*cornerTaper,edgeZ=z*depthTaper;
+ const edge=(row===0||row===5||col===0||col===5);
+ const n=Math.sin((row*17+col*31+20261123)*.71);
+ return [edgeX+(edge?0:n*1.05),edgeZ+(edge?0:Math.cos((row*29+col*13+20261123)*.63)*.9)];
+};
+function districtCellPolygon(r0,r1,c0,c1){
+ const points=[];
+ for(let c=c0;c<=c1;c++)points.push(districtVertex(r0,c));
+ for(let r=r0+1;r<=r1;r++)points.push(districtVertex(r,c1));
+ for(let c=c1-1;c>=c0;c--)points.push(districtVertex(r1,c));
+ for(let r=r1-1;r>r0;r--)points.push(districtVertex(r,c0));
+ return points;
+}
 const districtNames=[
  ['Северо-западный','Северный','Северо-восточный','Северный окраинный','Верхний восточный'],
  ['Западный','Северо-центральный','Центральный север','Восточный центр','Восточный'],
@@ -47,12 +67,12 @@ const mergeByStart=new Map(districtMerges.map(m=>[m.rows[0]*5+m.cols[0],m]));
 for(let row=0;row<5;row++)for(let col=0;col<5;col++){
  const key=row*5+col;if(covered.has(key)&&!mergeByStart.has(key))continue;
  const merge=mergeByStart.get(key),rows=merge?.rows??[row],cols=merge?.cols??[col];
- const x1=districtBounds[cols[0]],x2=districtBounds[cols[cols.length-1]+1],z1=districtBounds[rows[0]],z2=districtBounds[rows[rows.length-1]+1];
+ const r0=rows[0],r1=rows[rows.length-1],c0=cols[0],c1=cols[cols.length-1];
  const central=rows.includes(2)&&cols.includes(2),business=(row===1&&col===2)||(row===2&&col===3),industrial=rows.includes(3)&&cols.includes(2),civic=rows.includes(2)&&cols.includes(1);
  const type=central||business?'business':industrial?'industrial':civic?'civic':'residential';
  const colors=['#526e83','#557866','#607b8a','#52796f','#65746d','#54786d','#687d6a','#617a6e','#4d7167'];
  const name=merge?.name??(central?'Центральный':districtNames[row][col]);
- districts.push({name,type,pts:[[x1,z1],[x2,z1],[x2,z2],[x1,z2]],color:colors[(row*5+col)%colors.length],cells:rows.length*cols.length});
+ districts.push({name,type,pts:districtCellPolygon(r0,r1,c0,c1),color:colors[(row*5+col)%colors.length],cells:rows.length*cols.length});
 }
 const politicalColors=['#3e83e6','#bd4f5c','#c6a14b','#8962bf','#6d8395'];
 let showDistricts=true, selectedDistrict=null;
@@ -283,7 +303,7 @@ const layerColors={political:politicalColors,economic:['#344d64','#426e61','#7d6
 function politicalWinnerForDistrict(i){const state=window.republicState,support=state?.support||[32,28,20,12,8],colors=state?.partyColors||politicalColors,scores=support.map((v,p)=>Math.max(0,v+Math.sin((i+1)*8.17+(p+1)*3.91)*6)),winner=scores.reduce((best,v,p)=>v>scores[best]?p:best,0),total=scores.reduce((a,b)=>a+b,0)||1;return{winner,color:colors[winner]||politicalColors[winner%politicalColors.length],name:state?.partyNames?.[winner]||'Партия',share:scores[winner]/total*100}}function applyLayer(){const active=layerIds.find(id=>document.getElementById(id).checked)||null;districtMeshes.forEach((m,i)=>{const color=active==='political'?politicalWinnerForDistrict(i).color:active?layerColors[active][i%layerColors[active].length]:districts[i].color;m.material.color.set(color)})}
 layerIds.forEach(id=>document.getElementById(id).addEventListener('change',()=>{if(document.getElementById(id).checked)layerIds.filter(other=>other!==id).forEach(other=>document.getElementById(other).checked=false);applyLayer()}));
 document.querySelector('#toggleDistrict').onclick=()=>{showDistricts=!showDistricts;districtMeshes.forEach(m=>m.visible=showDistricts);toast(showDistricts?'Районы отображены':'Заливка районов скрыта')};
-document.querySelector('#resetCamera').onclick=()=>{camera.position.set(48,62,68);controls.target.set(0,0,0);controls.update()};
+document.querySelector('#resetCamera').onclick=()=>{camera.position.set(54,66,68);controls.target.set(0,0,0);controls.update()};
 function fitCanvas(){const r=canvas.getBoundingClientRect();const w=Math.max(1,r.width||canvas.parentElement?.clientWidth||window.innerWidth);const h=Math.max(1,r.height||canvas.parentElement?.clientHeight||window.innerHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
 window.addEventListener('resize',fitCanvas);if(typeof ResizeObserver!=='undefined'){const mapResizeObserver=new ResizeObserver(()=>fitCanvas());mapResizeObserver.observe(canvas.parentElement)}requestAnimationFrame(fitCanvas);
 const adminPanel=document.querySelector('#adminPanel');
