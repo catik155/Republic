@@ -37,14 +37,14 @@ This document tracks the game direction requested by the player across earlier d
 - [ ] Make citizen circles represent residents consistently, with grouping/interaction and readable activity state.
 
 ## Construction and city development
-- [ ] Add a construction mode on the 3D map: select a parcel and preview the footprint before confirming placement.
-- [ ] Building catalog: housing, shops/offices, factories/workshops, schools, clinics, parks and public facilities.
-- [ ] Enforce placement rules: land/buildable area, road access, district boundaries, occupied footprints, parks, landmarks and minimum spacing.
-- [ ] Charge construction costs to the national budget; show costs, upkeep, construction time and affordability before placement.
+- [x] Add a basic construction mode on the 3D map: choose a building type and place it by clicking a free parcel; footprint preview remains pending.
+- [x] Add a starter catalog of housing, shops/offices, factories/workshops and public buildings; schools, clinics and parks remain to be added.
+- [x] Validate placement against district/buildable bounds, street access, existing buildings, parks, party HQs and government landmark.
+- [x] Deduct building-specific construction costs from the national budget and prevent placement when funds are insufficient; upkeep and construction time remain pending.
 - [ ] Add construction progress and completion; unfinished sites should be visible and should not function as completed buildings.
 - [ ] Give completed buildings simulation effects: housing capacity/population, jobs/unemployment, commerce/tax income, services, infrastructure and district indicators.
 - [ ] Add demolition, upgrades and relocation/refund rules with confirmation and audit checks.
-- [ ] Persist player-built city objects across reloads and include them in save/multiplayer synchronization.
+- [x] Persist player-built city objects locally across page reloads; multiplayer synchronization and inclusion in full campaign saves remain pending.
 - [ ] Add city planning tools: zoning, road extensions, utilities and public transport as later development stages.
 - [ ] Verify construction on desktop/mobile and ensure it never hides or breaks the map.
 
