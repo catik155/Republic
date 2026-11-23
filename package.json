@@ -5,7 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "npm run build:web && electron .",
-    "check": "node --check main.js && node --check preload.js && node --check src/menu.js && node --check src/game.js && node --input-type=module --check < src/city3d.js",
+    "check": "node --check main.js && node --check preload.js && node --check src/menu.js && node --check src/game.js && node --input-type=module --check < src/city3d.js && node --test src/pedestrian-routines.test.js",
     "build:web": "vite build --outDir dist-web --base=./",
     "pack": "electron-builder --dir",
     "dist:win": "npm run build:web && electron-builder --win portable"
