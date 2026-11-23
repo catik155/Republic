@@ -230,8 +230,17 @@ facadeWindowFront.count=frontWindowCount;facadeWindowSide.count=sideWindowCount;
 // Warm street lamps live along sidewalks rather than in the carriageway.
 const lampMetal=new THREE.MeshStandardMaterial({color:'#344553',roughness:.7}),lampGlow=new THREE.MeshStandardMaterial({color:'#e4c98b',emissive:'#e4c98b',emissiveIntensity:.75});
 const lampPoleGeo=new THREE.CylinderGeometry(.07,.11,3.4,6),lampHeadGeo=new THREE.BoxGeometry(.45,.16,.32);
-const lampLocations=[];[-30,-10,10,30].forEach(x=>[-30,-10,10,30].forEach(z=>{lampLocations.push([x-3.1,z-3.1],[x+3.1,z+3.1])}));
-lampLocations.slice(0,28).forEach(([x,z])=>{const pole=new THREE.Mesh(lampPoleGeo,lampMetal);pole.position.set(x,1.7,z);pole.castShadow=true;city.add(pole);const head=new THREE.Mesh(lampHeadGeo,lampGlow);head.position.set(x,3.45,z);city.add(head);});
+const lampCandidates=[];[-30,-10,10,30].forEach(x=>[-30,-10,10,30].forEach(z=>{lampCandidates.push([x-3.1,z-3.1],[x+3.1,z+3.1])}));
+const lampLocations=[];
+lampCandidates.forEach(([x,z])=>{
+ const clearOfBuildings=bldgs.every(b=>Math.abs(x-b.x)>b.w/2+.65||Math.abs(z-b.z)>b.h/2+.65);
+ const clearOfHQ=partyHeadquarters.every(h=>Math.abs(x-h.x)>3.25||Math.abs(z-h.z)>2.85);
+ const clearOfGovernment=Math.abs(x)>5.25||Math.abs(z)>4.65;
+ const clearOfParks=parkShapes.every(points=>!pointInPolygon([x,z],points));
+ const clearOfLamps=lampLocations.every(([lx,lz])=>Math.hypot(x-lx,z-lz)>2.8);
+ if(clearOfBuildings&&clearOfHQ&&clearOfGovernment&&clearOfParks&&clearOfLamps)lampLocations.push([x,z]);
+});
+lampLocations.forEach(([x,z])=>{const pole=new THREE.Mesh(lampPoleGeo,lampMetal);pole.position.set(x,1.7,z);pole.castShadow=true;city.add(pole);const head=new THREE.Mesh(lampHeadGeo,lampGlow);head.position.set(x,3.45,z);city.add(head);});
 // Political party headquarters: distinct landmarks placed in city blocks, not on the road corridors.
 
 partyHeadquarters.forEach((hq,i)=>{
@@ -255,6 +264,7 @@ for(let col=-2;col<=2;col++){const pillar=new THREE.Mesh(new THREE.BoxGeometry(.
 const govSign=makeLabel('ПРАВИТЕЛЬСТВО');govSign.scale.set(17,4,1);govSign.position.set(0,10.3,0);city.add(govSign);
 // Parks are deliberate landscaped spaces in the static city plan
 const parkMat=new THREE.MeshStandardMaterial({color:'#233d32',roughness:1});
+const parkFixtures=[];
 
 parkShapes.forEach((points,parkIndex)=>{const g=new THREE.Shape();points.forEach(([x,z],i)=>i?g.lineTo(x,-z):g.moveTo(x,-z));g.closePath();const geom=new THREE.ShapeGeometry(g);geom.rotateX(-Math.PI/2);const m=new THREE.Mesh(geom,parkMat);m.position.y=.14;city.add(m);
  // Fixed park furniture: benches and trees are part of the persistent city scene.
@@ -265,19 +275,43 @@ parkShapes.forEach((points,parkIndex)=>{const g=new THREE.Shape();points.forEach
  const back=new THREE.Mesh(new THREE.BoxGeometry(2.2,.65,.12),benchWood);back.position.set(0,.98,-.24);bench.add(back);
  for(const lx of [-.85,.85])for(const lz of [-.18,.18]){const leg=new THREE.Mesh(new THREE.BoxGeometry(.12,.62,.12),benchMetal);leg.position.set(lx,.31,lz);bench.add(leg)}
  city.add(bench);
+ parkFixtures.push({kind:'bench',x:bench.position.x,z:bench.position.z,w:2.8,h:1.5,park:parkIndex});
  const treeMaterial=new THREE.MeshStandardMaterial({color:'#253c32',roughness:1}),trunkMaterial=new THREE.MeshStandardMaterial({color:'#54483b',roughness:1});
- for(let t=0;t<2;t++){const tx=points[t][0],tz=points[t][1],trunk=new THREE.Mesh(new THREE.CylinderGeometry(.14,.18,1.2,6),trunkMaterial);trunk.position.set(tx,.6,tz);city.add(trunk);const crown=new THREE.Mesh(new THREE.ConeGeometry(1.05,2.3,7),treeMaterial);crown.position.set(tx,2,tz);crown.castShadow=true;city.add(crown)}
+ for(let t=0;t<2;t++){const tx=points[t][0],tz=points[t][1];parkFixtures.push({kind:'tree',x:tx,z:tz,w:2.1,h:2.1,park:parkIndex});const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.14,.18,1.2,6),trunkMaterial);trunk.position.set(tx,.6,tz);city.add(trunk);const crown=new THREE.Mesh(new THREE.ConeGeometry(1.05,2.3,7),treeMaterial);crown.position.set(tx,2,tz);crown.castShadow=true;city.add(crown)}
 });
 function auditCityLayout(){
  const issues=[],overlap=(a,b,pad=0)=>Math.abs(a.x-b.x)<(a.w+b.w)/2+pad&&Math.abs(a.z-b.z)<(a.h+b.h)/2+pad;
+ const insideAnyPark=(x,z)=>parkShapes.some(points=>pointInPolygon([x,z],points)||points.some((p,i)=>{const q=points[(i+1)%points.length],dx=q[0]-p[0],dz=q[1]-p[1],t=Math.max(0,Math.min(1,((x-p[0])*dx+(z-p[1])*dz)/(dx*dx+dz*dz||1)));return Math.hypot(x-(p[0]+t*dx),z-(p[1]+t*dz))<.12}));
+ const governmentFootprint={x:0,z:0,w:9.2,h:8.4};
  for(let i=0;i<bldgs.length;i++)for(let j=i+1;j<bldgs.length;j++)if(overlap(bldgs[i],bldgs[j],.08))issues.push('building:'+i+'/'+j);
  bldgs.forEach((b,i)=>{
   if(nearRoad(b.x,b.z,Math.max(b.w,b.h)/2+.28))issues.push('building-road:'+i);
   if(partyHeadquarters.some(h=>Math.abs(b.x-h.x)<(b.w+5.6)/2+.35&&Math.abs(b.z-h.z)<(b.h+4.8)/2+.35))issues.push('building-hq:'+i);
+  if(overlap(b,governmentFootprint,.25))issues.push('building-government:'+i);
   if(parkShapes.some(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);return !(b.x+b.w/2<Math.min(...xs)||b.x-b.w/2>Math.max(...xs)||b.z+b.h/2<Math.min(...zs)||b.z-b.h/2>Math.max(...zs))}))issues.push('building-park:'+i);
  });
- partyHeadquarters.forEach((h,i)=>{if(parkShapes.some(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);return !(h.x+2.8<Math.min(...xs)||h.x-2.8>Math.max(...xs)||h.z+2.4<Math.min(...zs)||h.z-2.4>Math.max(...zs))}))issues.push('hq-park:'+i);if(nearRoad(h.x,h.z,3.0))issues.push('hq-road:'+i)});
- const report={seed:CITY_LAYOUT_SEED,buildings:bldgs.length,parks:parkShapes.length,partyHQs:partyHeadquarters.length,buildingOverlaps:issues.filter(v=>v.startsWith('building:')).length,roadConflicts:issues.filter(v=>v.startsWith('building-road:')||v.startsWith('hq-road:')).length,landmarkConflicts:issues.filter(v=>v.startsWith('building-hq:')||v.startsWith('building-park:')||v.startsWith('hq-park:')).length,issues};
+ partyHeadquarters.forEach((h,i)=>{
+  if(parkShapes.some(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);return !(h.x+2.8<Math.min(...xs)||h.x-2.8>Math.max(...xs)||h.z+2.4<Math.min(...zs)||h.z-2.4>Math.max(...zs))}))issues.push('hq-park:'+i);
+  if(nearRoad(h.x,h.z,3.0))issues.push('hq-road:'+i);
+  if(overlap({x:h.x,z:h.z,w:5.6,h:4.8},governmentFootprint,.25))issues.push('hq-government:'+i);
+  for(let j=i+1;j<partyHeadquarters.length;j++){const other=partyHeadquarters[j];if(overlap({x:h.x,z:h.z,w:5.6,h:4.8},{x:other.x,z:other.z,w:5.6,h:4.8},.25))issues.push('hq-hq:'+i+'/'+j)}
+ });
+ parkFixtures.forEach((p,i)=>{
+  if(!insideAnyPark(p.x,p.z))issues.push('park-fixture-outside:'+i);
+  if(bldgs.some(b=>overlap(p,b,.2)))issues.push('park-fixture-building:'+i);
+  if(partyHeadquarters.some(h=>overlap(p,{x:h.x,z:h.z,w:5.6,h:4.8},.2)))issues.push('park-fixture-hq:'+i);
+  if(overlap(p,governmentFootprint,.2))issues.push('park-fixture-government:'+i);
+  for(let j=i+1;j<parkFixtures.length;j++)if(overlap(p,parkFixtures[j],.12))issues.push('park-fixture-fixture:'+i+'/'+j);
+ });
+ lampLocations.forEach(([x,z],i)=>{
+  if(bldgs.some(b=>Math.abs(x-b.x)<b.w/2+.65&&Math.abs(z-b.z)<b.h/2+.65))issues.push('lamp-building:'+i);
+  if(partyHeadquarters.some(h=>Math.abs(x-h.x)<3.25&&Math.abs(z-h.z)<2.85))issues.push('lamp-hq:'+i);
+  if(Math.abs(x)<5.25&&Math.abs(z)<4.65)issues.push('lamp-government:'+i);
+  if(insideAnyPark(x,z))issues.push('lamp-park:'+i);
+  for(let j=i+1;j<lampLocations.length;j++)if(Math.hypot(x-lampLocations[j][0],z-lampLocations[j][1])<2.8)issues.push('lamp-lamp:'+i+'/'+j);
+ });
+ const count=prefix=>issues.filter(v=>v.startsWith(prefix)).length;
+ const report={seed:CITY_LAYOUT_SEED,buildings:bldgs.length,parks:parkShapes.length,parkFixtures:parkFixtures.length,streetLamps:lampLocations.length,partyHQs:partyHeadquarters.length,buildingOverlaps:count('building:'),roadConflicts:count('building-road:')+count('hq-road:'),landmarkConflicts:count('building-hq:')+count('building-park:')+count('hq-park:')+count('building-government:')+count('hq-government:')+count('hq-hq:'),decorationConflicts:count('park-fixture-')+count('lamp-'),issues};
  window.cityMapAudit=report;console.info('[Republic map audit]',report);return report;
 }
 function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,zi]=pts[i],[xj,zj]=pts[j];if(((zi>z)!=(zj>z))&&(x<(xj-xi)*(z-zi)/(zj-zi)+xi))inside=!inside}return inside}
