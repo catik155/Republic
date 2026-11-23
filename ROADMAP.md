@@ -19,6 +19,7 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Split district overlay into 25 grid cells and rename regions by location; avoid falsely calling a district 'Riverside' when no river is present.
 - [x] Merge selected adjacent grid cells into larger multi-cell districts; some districts now cover 2–4 cells while preserving city coverage.
 - [x] Generate a refreshed deterministic city layout from a versioned map seed; validate building footprints against roads, each other, parks, party headquarters and the government landmark, and expose a startup map-audit report.
+- [x] Replace the perfectly square district grid with a wider, tapered urban footprint and shared irregular block boundaries; keep adjacent district edges aligned.
 - [x] Move parks into block interiors, away from the road center lines.
 - [x] Shortest-path routing on the street graph with cached distance maps; still requires visual verification and pedestrian avoidance refinements.
 - [x] Expand resident outing destinations to shops, civic buildings, party headquarters, and parks; park/shop stops and office visits use deterministic selection and street-graph routing.
