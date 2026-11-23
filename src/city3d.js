@@ -42,7 +42,7 @@ const districtMerges=[
  {rows:[0,1],cols:[2,2],name:'Северный центральный округ'}
 ];
 const covered=new Set();
-districtMerges.forEach(m=>m.rows.forEach(r=>m.cols.forEach(c=>covered.add(r*5+c)));
+districtMerges.forEach(m=>m.rows.forEach(r=>m.cols.forEach(c=>covered.add(r*5+c))));
 const mergeByStart=new Map(districtMerges.map(m=>[m.rows[0]*5+m.cols[0],m]));
 for(let row=0;row<5;row++)for(let col=0;col<5;col++){
  const key=row*5+col;if(covered.has(key)&&!mergeByStart.has(key))continue;
