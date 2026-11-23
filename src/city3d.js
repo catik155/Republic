@@ -355,7 +355,7 @@ function createPlayerBuilding(record){
  const b={...record,mesh,district,floors:spec.floors,kind:spec.kind,w:spec.w,h:spec.h,entryX:record.x+spec.w/2,entryZ:record.z,playerBuilt:true};
  bldgs.push(b);return b;
 }
-try{const saved=JSON.parse(localStorage.getItem('republic-built-buildings-v1')||'[]');if(Array.isArray(saved))saved.forEach(record=>{if(buildCatalog[record.type]&&Number.isFinite(record.x)&&Number.isFinite(record.z))createPlayerBuilding(record)})}catch{}
+try{const saved=JSON.parse(localStorage.getItem('republic-built-buildings-v1')||'[]');if(Array.isArray(saved))saved.forEach(record=>{if(buildCatalog[record.type]&&Number.isFinite(record.x)&&Number.isFinite(record.z)&&createPlayerBuilding(record))builtObjects.push(record)})}catch{}
 function canBuildAt(x,z,spec){
  const candidate={x,z,w:spec.w,h:spec.h};
  if(!districts.some(d=>pointInPolygon([x,z],d.pts)))return'За пределами городских районов';
