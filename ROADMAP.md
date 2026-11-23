@@ -51,7 +51,7 @@ This document tracks the game direction requested by the player across earlier d
 - [x] Campaign spending is restricted to parties in the governing coalition when it uses national budget; opposition cannot spend treasury funds.
 - [ ] Add individual party campaign treasuries and autonomous party fund-raising; opposition should use its own money for rallies and outreach.
 - [ ] Improve coalition bargaining: cabinet/ministerial portfolios, policy promises, party acceptance, confidence votes.
-- [ ] Make laws materially affect economy, population, parties, districts, and future elections.
+- [ ] Expand law effects into named policy types with stronger long-term economy, population, district, and election consequences (passed laws now have modest immediate effects on economy/stability/unrest and support).
 - [ ] Add party leaders, personalities, priorities, campaign AI and event-driven rival actions.
 - [ ] Improve election campaigns, debates, scandals, endorsements, polling and regional vote.
 - [ ] Protests, strikes, riots, other parties' reactions and government/opposition actions need more distinct outcomes.
