@@ -407,7 +407,7 @@ function fitCanvas(){
  const host=canvas.parentElement;
  const r=host.getBoundingClientRect();
  const w=Math.max(1,Math.round(r.width||host.clientWidth||window.innerWidth));
- const h=Math.max(1,Math.round(r.height||host.clientHeight||window.innerHeight-60));
+ const h=Math.max(window.innerWidth<=650?320:240,Math.round(r.height||host.clientHeight||window.innerHeight-60));
  if(canvas.width!==Math.round(w*renderer.getPixelRatio())||canvas.height!==Math.round(h*renderer.getPixelRatio())||camera.aspect!==w/h){
   renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
  }
