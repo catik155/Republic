@@ -34,12 +34,25 @@ const districtNames=[
  ['Нижний запад','Южный запад','Южный','Южный окраинный','Нижний восток']
 ];
 const districts=[];
+const districtMerges=[
+ {rows:[0,1],cols:[0,1],name:'Северо-западный округ'},
+ {rows:[1,2],cols:[3,4],name:'Восточный округ'},
+ {rows:[3,4],cols:[0,1],name:'Юго-западный округ'},
+ {rows:[3,4],cols:[3,4],name:'Юго-восточный округ'},
+ {rows:[0,1],cols:[2,2],name:'Северный центральный округ'}
+];
+const covered=new Set();
+districtMerges.forEach(m=>m.rows.forEach(r=>m.cols.forEach(c=>covered.add(r*5+c)));
+const mergeByStart=new Map(districtMerges.map(m=>[m.rows[0]*5+m.cols[0],m]));
 for(let row=0;row<5;row++)for(let col=0;col<5;col++){
- const x1=districtBounds[col],x2=districtBounds[col+1],z1=districtBounds[row],z2=districtBounds[row+1];
- const central=row===2&&col===2,business=(row===1&&col===2)||(row===2&&col===3),industrial=row===3&&col===2,civic=row===2&&col===1;
+ const key=row*5+col;if(covered.has(key)&&!mergeByStart.has(key))continue;
+ const merge=mergeByStart.get(key),rows=merge?.rows??[row],cols=merge?.cols??[col];
+ const x1=districtBounds[cols[0]],x2=districtBounds[cols[cols.length-1]+1],z1=districtBounds[rows[0]],z2=districtBounds[rows[rows.length-1]+1];
+ const central=rows.includes(2)&&cols.includes(2),business=(row===1&&col===2)||(row===2&&col===3),industrial=rows.includes(3)&&cols.includes(2),civic=rows.includes(2)&&cols.includes(1);
  const type=central||business?'business':industrial?'industrial':civic?'civic':'residential';
  const colors=['#526e83','#557866','#607b8a','#52796f','#65746d','#54786d','#687d6a','#617a6e','#4d7167'];
- districts.push({name:central?'Центральный':districtNames[row][col],type,pts:[[x1,z1],[x2,z1],[x2,z2],[x1,z2]],color:colors[(row*5+col)%colors.length]});
+ const name=merge?.name??(central?'Центральный':districtNames[row][col]);
+ districts.push({name,type,pts:[[x1,z1],[x2,z1],[x2,z2],[x1,z2]],color:colors[(row*5+col)%colors.length],cells:rows.length*cols.length});
 }
 const politicalColors=['#3e83e6','#bd4f5c','#c6a14b','#8962bf','#6d8395'];
 let showDistricts=true, selectedDistrict=null;
