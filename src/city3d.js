@@ -86,6 +86,9 @@ const avenuePaths=[
 ];
 avenuePaths.forEach(path=>path.slice(0,-1).forEach((p,j)=>road(p[0],p[1],path[j+1][0],path[j+1][1],3.8)));
 // City block/building placement: deterministic, fixed seed list, no random map generation.
+const parkShapes=[[[-39,-23],[-35,-24],[-33,-20],[-35,-17],[-39,-18]],[[-19,-23],[-15,-24],[-13,-20],[-15,-17],[-19,-18]],[[18,18],[22,17],[24,21],[22,24],[18,23]]];
+const CITY_LAYOUT_SEED=20261123;
+function layoutNoise(index,axis){const n=Math.sin((CITY_LAYOUT_SEED+index*91.7+axis*173.3)*.0174533)*43758.5453;return(n-Math.floor(n))*2-1}
 const blockCenters=[
 [-35,-28],[-25,-28],[-15,-27],[-2,-27],[7,-27],[24,-27],[36,-27],
 [-37,-10],[-24,-10],[-14,-10],[0,-10],[7,-10],[24,-10],[37,-10],
@@ -104,7 +107,7 @@ const bldgs=[];
 function distanceToSegment(px,pz,a,b){const dx=b[0]-a[0],dz=b[1]-a[1],den=dx*dx+dz*dz||1;const t=Math.max(0,Math.min(1,((px-a[0])*dx+(pz-a[1])*dz)/den));return Math.hypot(px-(a[0]+dx*t),pz-(a[1]+dz*t))}
 function nearRoad(px,pz,buildingRadius=1.7){for(let pathIndex=0;pathIndex<avenuePaths.length;pathIndex++){const path=avenuePaths[pathIndex],width=pathIndex%3===0?3.6:2.8;for(let seg=0;seg<path.length-1;seg++){const safeDistance=width/2+.18+1.25+buildingRadius+.35;if(distanceToSegment(px,pz,path[seg],path[seg+1])<safeDistance)return true}}return false}
 blockCenters.forEach(([baseX,baseZ],idx)=>{
- const bx=baseX+Math.sin(idx*12.9898)*1.6,bz=baseZ+Math.cos(idx*7.233)*1.5;
+ const bx=baseX+Math.sin(idx*12.9898)*1.6+layoutNoise(idx,1)*1.15,bz=baseZ+Math.cos(idx*7.233)*1.5+layoutNoise(idx,2)*1.15;
  const district=districts.find(d=>pointInPolygon([bx,bz],d.pts))||districts[4];
  const variations=[[-2.3,-1.8],[2.1,-1.4],[-1.7,2.1],[2.4,1.9],[-4.0,-2.8],[4.0,-2.6],[-3.8,3.7],[4.1,3.8],[-5.2,0],[5.2,0],[0,-5.2],[0,5.2]];
  variations.forEach(([dx,dz],k)=>{
@@ -116,7 +119,8 @@ blockCenters.forEach(([baseX,baseZ],idx)=>{
   const buildingClear=bldgs.every(b=>Math.abs(x-b.x)>=(w+b.w)/2+.35||Math.abs(z-b.z)>=(h+b.h)/2+.35);
   const hqClear=partyHeadquarters.every(hq=>Math.abs(x-hq.x)>=w/2+3.1||Math.abs(z-hq.z)>=h/2+2.7);
   const govClear=Math.abs(x)>=w/2+5.0||Math.abs(z)>=h/2+4.6;
-  if((Math.abs(x)<7&&Math.abs(z)<7)||!roadClear||!buildingClear||!hqClear||!govClear)return;
+  const parkClear=parkShapes.every(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]),minX=Math.min(...xs),maxX=Math.max(...xs),minZ=Math.min(...zs),maxZ=Math.max(...zs);return x+w/2+.8<minX||x-w/2-.8>maxX||z+h/2+.8<minZ||z-h/2-.8>maxZ});
+  if((Math.abs(x)<7&&Math.abs(z)<7)||!roadClear||!buildingClear||!hqClear||!govClear||!parkClear)return;
   const color=district.type==='business'?'#566777':district.type==='industrial'?'#4b5b61':['#485563','#3f4c59','#53616e','#655c56','#5a6570'][(idx+k)%5];
   const variant=(idx*7+k*3)%4,mat=new THREE.MeshStandardMaterial({color,roughness:.84});
   const geom=new THREE.BoxGeometry(w,floors*1.25,h),mesh=new THREE.Mesh(geom,mat);mesh.position.set(x,floors*.625+.12,z);mesh.castShadow=true;mesh.receiveShadow=true;city.add(mesh);
@@ -226,7 +230,7 @@ for(let col=-2;col<=2;col++){const pillar=new THREE.Mesh(new THREE.BoxGeometry(.
 const govSign=makeLabel('ПРАВИТЕЛЬСТВО');govSign.scale.set(17,4,1);govSign.position.set(0,10.3,0);city.add(govSign);
 // Parks are deliberate landscaped spaces in the static city plan
 const parkMat=new THREE.MeshStandardMaterial({color:'#233d32',roughness:1});
-const parkShapes=[[[-39,-23],[-35,-24],[-33,-20],[-35,-17],[-39,-18]],[[-19,-23],[-15,-24],[-13,-20],[-15,-17],[-19,-18]],[[18,18],[22,17],[24,21],[22,24],[18,23]]];
+
 parkShapes.forEach((points,parkIndex)=>{const g=new THREE.Shape();points.forEach(([x,z],i)=>i?g.lineTo(x,-z):g.moveTo(x,-z));g.closePath();const geom=new THREE.ShapeGeometry(g);geom.rotateX(-Math.PI/2);const m=new THREE.Mesh(geom,parkMat);m.position.y=.14;city.add(m);
  // Fixed park furniture: benches and trees are part of the persistent city scene.
  const center=points.reduce((sum,p)=>[sum[0]+p[0]/points.length,sum[1]+p[1]/points.length],[0,0]);
@@ -239,6 +243,17 @@ parkShapes.forEach((points,parkIndex)=>{const g=new THREE.Shape();points.forEach
  const treeMaterial=new THREE.MeshStandardMaterial({color:'#253c32',roughness:1}),trunkMaterial=new THREE.MeshStandardMaterial({color:'#54483b',roughness:1});
  for(let t=0;t<2;t++){const tx=points[t][0],tz=points[t][1],trunk=new THREE.Mesh(new THREE.CylinderGeometry(.14,.18,1.2,6),trunkMaterial);trunk.position.set(tx,.6,tz);city.add(trunk);const crown=new THREE.Mesh(new THREE.ConeGeometry(1.05,2.3,7),treeMaterial);crown.position.set(tx,2,tz);crown.castShadow=true;city.add(crown)}
 });
+function auditCityLayout(){
+ const issues=[],overlap=(a,b,pad=0)=>Math.abs(a.x-b.x)<(a.w+b.w)/2+pad&&Math.abs(a.z-b.z)<(a.h+b.h)/2+pad;
+ for(let i=0;i<bldgs.length;i++)for(let j=i+1;j<bldgs.length;j++)if(overlap(bldgs[i],bldgs[j],.08))issues.push('building:'+i+'/'+j);
+ bldgs.forEach((b,i)=>{
+  if(nearRoad(b.x,b.z,Math.max(b.w,b.h)/2+.28))issues.push('building-road:'+i);
+  if(partyHeadquarters.some(h=>Math.abs(b.x-h.x)<(b.w+5.6)/2+.35&&Math.abs(b.z-h.z)<(b.h+4.8)/2+.35))issues.push('building-hq:'+i);
+  if(parkShapes.some(points=>{const xs=points.map(p=>p[0]),zs=points.map(p=>p[1]);return !(b.x+b.w/2<Math.min(...xs)||b.x-b.w/2>Math.max(...xs)||b.z+b.h/2<Math.min(...zs)||b.z-b.h/2>Math.max(...zs))}))issues.push('building-park:'+i);
+ });
+ const report={seed:CITY_LAYOUT_SEED,buildings:bldgs.length,parks:parkShapes.length,partyHQs:partyHeadquarters.length,buildingOverlaps:issues.filter(v=>v.startsWith('building:')).length,roadConflicts:issues.filter(v=>v.startsWith('building-road:')).length,landmarkConflicts:issues.filter(v=>v.startsWith('building-hq:')||v.startsWith('building-park:')).length,issues};
+ window.cityMapAudit=report;console.info('[Republic map audit]',report);return report;
+}
 function pointInPolygon([x,z],pts){let inside=false;for(let i=0,j=pts.length-1;i<pts.length;j=i++){const [xi,zi]=pts[i],[xj,zj]=pts[j];if(((zi>z)!=(zj>z))&&(x<(xj-xi)*(z-zi)/(zj-zi)+xi))inside=!inside}return inside}
 // Pedestrians roam along connected road intersections, with gentle lateral weaving.
 const people=new THREE.Group();scene.add(people);
@@ -302,7 +317,7 @@ adminOpen?.addEventListener('click',syncMetricSliders);
   });
  });
 window.cityAdmin={getSettings:()=>({...pedestrianAdmin}),setResidents:n=>{pedestrianAdmin.count=Math.max(90,Math.min(150,Number(n)||110));if(residentSlider)residentSlider.value=pedestrianAdmin.count;updateResidentVisibility();updateAdminLabels()}};
-updateAdminLabels();auditHQ();
+updateAdminLabels();auditHQ();auditCityLayout();
 const clock=new THREE.Clock();let lastLayerRefresh=0;function animate(){requestAnimationFrame(animate);const elapsed=clock.getElapsedTime();movePedestrians(elapsed);if(elapsed-lastLayerRefresh>1){applyLayer();lastLayerRefresh=elapsed}controls.update();renderer.render(scene,camera)}animate();
 function toast(msg){const el=document.querySelector('#toast');el.textContent=msg;el.style.display='block';clearTimeout(el._timer);el._timer=setTimeout(()=>el.style.display='none',2100)}
 // Menu creation/opening is handled in index.html independently of WebGL.
