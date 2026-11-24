@@ -4,6 +4,62 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const canvas=document.querySelector('#city3d');
 const mapHost=canvas.parentElement;
+function drawFallbackMap(error){
+ if(window.__republicMapFallback)return;
+ window.__republicMapFallback=true;
+ console.error('[Republic] 3D map unavailable; using 2D fallback.',error);
+ const host=canvas.parentElement,overlay=document.createElement('canvas');
+ overlay.id='city3d-fallback';overlay.style.cssText='position:absolute;inset:0;width:100%;height:100%;z-index:1;display:block;cursor:grab;touch-action:none';
+ host.appendChild(overlay);canvas.style.display='none';
+ ['mapcontrols','tabs'].forEach(cls=>{const el=host.querySelector('.'+cls);if(el)el.style.zIndex='2'});
+ const toast=host.querySelector('#toast');if(toast)toast.style.zIndex='2';
+ const ctx=overlay.getContext('2d');if(!ctx){const note=document.createElement('div');note.textContent='3D-карта недоступна в этом браузере.';note.style.cssText='position:absolute;z-index:2;inset:20px;color:#dbe5ef;background:#101923;padding:16px';host.appendChild(note);return}
+ let zoom=1,panX=0,panY=0,dragging=false,lastX=0,lastY=0,showDistricts=true;
+ const b=[-48,-30,-10,10,30,48],roads=[-30,-10,10,30],parks=[[[-39,-23],[-35,-24],[-33,-20],[-35,-17],[-39,-18]],[[-6,-23],[-2,-24],[0,-20],[-2,-17],[-6,-18]],[[33,18],[37,17],[39,21],[37,24],[33,23]]],parkCells=new Set(['1,0','1,2','3,4']);
+ const colors=['#526e83','#557866','#607b8a','#52796f','#65746d','#54786d','#687d6a','#617a6e','#4d7167'];
+ const pt=(x,z)=>[x*(1-.14*Math.pow(Math.abs(z)/48,4)),z*(1-.12*Math.pow(Math.abs(x)/48,4))];
+ function renderFallback(){
+  if(!overlay.isConnected)return;
+  const dpr=Math.min(window.devicePixelRatio||1,2),w=Math.max(1,overlay.clientWidth||host.clientWidth||window.innerWidth),h=Math.max(1,overlay.clientHeight||host.clientHeight||window.innerHeight-60);
+  if(overlay.width!==Math.round(w*dpr)||overlay.height!==Math.round(h*dpr)){overlay.width=Math.round(w*dpr);overlay.height=Math.round(h*dpr)}
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#080e15';ctx.fillRect(0,0,w,h);
+  const s=Math.min(w/116,h/108)*zoom;ctx.save();ctx.translate(w/2+panX,h/2+panY);ctx.scale(s,s);
+  ctx.fillStyle='#111b25';ctx.fillRect(-50,-50,100,100);
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){
+   const x0=b[c],x1=b[c+1],z0=b[r],z1=b[r+1],type=(r===2&&c===2)?'civic':((r===1&&c===2)||(r===2&&c===3))?'business':(r===3&&c===2)?'industrial':'residential',pts=[pt(x0,z0),pt(x1,z0),pt(x1,z1),pt(x0,z1)];
+   ctx.beginPath();pts.forEach(([x,z],i)=>i?ctx.lineTo(x,z):ctx.moveTo(x,z));ctx.closePath();
+   if(showDistricts){ctx.fillStyle=type==='business'?'#314653':type==='industrial'?'#3d4748':type==='civic'?'#4a4858':colors[(r*5+c)%colors.length];ctx.globalAlpha=.55;ctx.fill();ctx.globalAlpha=1}
+   ctx.strokeStyle='#6e8293';ctx.lineWidth=.24;ctx.stroke();
+  }
+  ctx.lineCap='round';roads.forEach((v,i)=>{const width=(i===1||i===2)?4.6:3.1;ctx.strokeStyle='#3a4651';ctx.lineWidth=width+.5;ctx.beginPath();ctx.moveTo(-46,v);ctx.lineTo(46,v);ctx.moveTo(v,-46);ctx.lineTo(v,46);ctx.stroke();ctx.strokeStyle='#242f3a';ctx.lineWidth=width;ctx.stroke();ctx.strokeStyle='#53606c';ctx.lineWidth=.12;ctx.setLineDash([1.2,1.4]);ctx.beginPath();ctx.moveTo(-46,v);ctx.lineTo(46,v);ctx.moveTo(v,-46);ctx.lineTo(v,46);ctx.stroke();ctx.setLineDash([])});
+  parks.forEach(pts=>{ctx.beginPath();pts.forEach(([x,z],i)=>i?ctx.lineTo(x,z):ctx.moveTo(x,z));ctx.closePath();ctx.fillStyle='#315744';ctx.fill();ctx.strokeStyle='#67886d';ctx.lineWidth=.3;ctx.stroke();pts.forEach(([x,z])=>{ctx.fillStyle='#75966d';ctx.beginPath();ctx.arc(x,z,.45,0,Math.PI*2);ctx.fill()})});
+  for(let r=0;r<5;r++)for(let c=0;c<5;c++){
+   if(parkCells.has(r+','+c)||(r===2&&c===2))continue;
+   const cx=(b[c]+b[c+1])/2,cz=(b[r]+b[r+1])/2;
+   [[-3.8,-3.8],[3.8,-3.8],[-3.8,3.8],[3.8,3.8]].forEach(([dx,dz],k)=>{
+    const x=cx+dx+Math.sin((r*5+c)*12.7+k)*.7,z=cz+dz+Math.cos((r*5+c)*8.3+k)*.7,bw=2.6+(k%2)*.4,bh=2.5+((r+c+k)%3)*.25,shade=['#4a5966','#54636e','#5b686f','#625f58','#4b625b'][(r*5+c+k)%5];
+    ctx.fillStyle='#070c12';ctx.fillRect(x-bw/2+.5,z-bh/2+.6,bw,bh);ctx.fillStyle=shade;ctx.fillRect(x-bw/2,z-bh/2,bw,bh);ctx.fillStyle='#8194a3';ctx.globalAlpha=.55;ctx.fillRect(x-bw/2,z-bh/2,bw,.22);ctx.globalAlpha=1;ctx.strokeStyle='#293642';ctx.lineWidth=.12;ctx.strokeRect(x-bw/2,z-bh/2,bw,bh);
+   });
+  }
+  ctx.fillStyle='#485565';ctx.fillRect(-4.6,-4.2,9.2,8.4);ctx.fillStyle='#697d89';ctx.fillRect(-3.8,-3.3,7.6,6.6);ctx.fillStyle='#a8bac6';ctx.fillRect(-.55,-.55,1.1,1.1);
+  ctx.fillStyle='#e2eaf2';ctx.font='2.2px sans-serif';ctx.textAlign='center';ctx.fillText('ГОРОДСКАЯ АДМИНИСТРАЦИЯ',0,5.9);
+  [['Развитие','#3e83e6',-20,-20],['Социал-демократы','#bd4f5c',20,-20],['Нац. союз','#c6a14b',20,20],['Зелёные','#8962bf',-20,20],['Гражданская','#6d8395',-20,0]].forEach(([name,color,x,z])=>{ctx.fillStyle=color;ctx.fillRect(x-1.15,z-1.15,2.3,2.3);ctx.strokeStyle='#d7e3ef';ctx.lineWidth=.22;ctx.strokeRect(x-1.15,z-1.15,2.3,2.3);ctx.fillStyle='#fff';ctx.font='1.8px sans-serif';ctx.textAlign='center';ctx.fillText('ШТАБ',x,z+3.2)});
+  if(document.querySelector('#showPeople')?.checked!==false){const time=performance.now()/1000;for(let i=0;i<26;i++){const horizontal=i%2===0,road=roads[i%4],t=(time*.045+i*.037)%1,x=horizontal?-30+60*t:road,z=horizontal?road:-30+60*t;ctx.fillStyle=['#4a91ff','#d35a66','#d9b65c','#a681df','#86a0b9'][i%5];ctx.beginPath();ctx.arc(x,z,.34,0,Math.PI*2);ctx.fill()}}
+  ctx.restore();ctx.fillStyle='#dbe5ef';ctx.font='bold 13px Segoe UI,system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('Republic · резервная 2D-карта',14,24);ctx.fillStyle='#9aadc0';ctx.font='11px Segoe UI,system-ui,sans-serif';ctx.textAlign='right';ctx.fillText('3D недоступно · перетаскивание: обзор · колесо: масштаб',w-14,24);
+  requestAnimationFrame(renderFallback)
+ }
+ overlay.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;overlay.setPointerCapture?.(e.pointerId);overlay.style.cursor='grabbing'});
+ overlay.addEventListener('pointermove',e=>{if(dragging){panX+=e.clientX-lastX;panY+=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY}});
+ overlay.addEventListener('pointerup',()=>{dragging=false;overlay.style.cursor='grab'});overlay.addEventListener('pointercancel',()=>{dragging=false;overlay.style.cursor='grab'});
+ overlay.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.55,Math.min(2.8,zoom*(e.deltaY<0?1.1:.91)))},{passive:false});
+ const reset=document.querySelector('#resetCamera');if(reset)reset.onclick=()=>{zoom=1;panX=panY=0};
+ const toggle=document.querySelector('#toggleDistrict');if(toggle)toggle.onclick=()=>{showDistricts=!showDistricts;toggle.textContent=showDistricts?'Районы':'Районы (скрыты)'};
+ ['political','economic','infrastructure','ecology'].forEach(id=>{const el=document.getElementById(id);if(el){el.disabled=true;el.title='Слои доступны в режиме 3D'}});
+ const buildType=document.getElementById('buildType'),buildMode=document.getElementById('buildMode'),buildStatus=document.getElementById('buildStatus');if(buildType)buildType.disabled=true;if(buildMode)buildMode.disabled=true;if(buildStatus)buildStatus.textContent='Строительство отключено в резервном режиме карты.';
+ renderFallback()
+}
+
+try{
 const initialWidth=Math.max(1,canvas.clientWidth||mapHost.clientWidth||window.innerWidth);
 const initialHeight=Math.max(1,canvas.clientHeight||mapHost.clientHeight||window.innerHeight-60);
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
@@ -453,7 +509,9 @@ adminOpen?.addEventListener('click',syncMetricSliders);
  });
 window.cityAdmin={getSettings:()=>({...pedestrianAdmin}),setResidents:n=>{pedestrianAdmin.count=Math.max(90,Math.min(150,Number(n)||110));if(residentSlider)residentSlider.value=pedestrianAdmin.count;updateResidentVisibility();updateAdminLabels()}};
 updateAdminLabels();auditHQ();auditCityLayout();
-const clock=new THREE.Clock();let lastLayerRefresh=0;function animate(){requestAnimationFrame(animate);const elapsed=clock.getElapsedTime();movePedestrians(elapsed);if(elapsed-lastLayerRefresh>1){applyLayer();lastLayerRefresh=elapsed}controls.update();renderer.render(scene,camera)}animate();
+const clock=new THREE.Clock();let lastLayerRefresh=0,fallbackActive=false;function animate(){requestAnimationFrame(animate);if(fallbackActive)return;try{const elapsed=clock.getElapsedTime();movePedestrians(elapsed);if(elapsed-lastLayerRefresh>1){applyLayer();lastLayerRefresh=elapsed}controls.update();renderer.render(scene,camera)}catch(error){fallbackActive=true;drawFallbackMap(error)}}animate();
 function toast(msg){const el=document.querySelector('#toast');el.textContent=msg;el.style.display='block';clearTimeout(el._timer);el._timer=setTimeout(()=>el.style.display='none',2100)}
 // Menu creation/opening is handled in index.html independently of WebGL.
 // Campaign, law proposals and calendar advancement are implemented in src/game.js.
+}
+catch(error){drawFallbackMap(error)}
