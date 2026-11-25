@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { seededValue, dailyStopCount } from './pedestrian-routines.js';
-import { evaluateMapRenderHealth, MAP_EMPTY_RENDER_FRAME_LIMIT } from './map-render-health.js';
+import { evaluateMapRenderHealth } from './map-render-health.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const canvas=document.querySelector('#city3d');
@@ -512,7 +512,7 @@ adminOpen?.addEventListener('click',syncMetricSliders);
  });
 window.cityAdmin={getSettings:()=>({...pedestrianAdmin}),setResidents:n=>{pedestrianAdmin.count=Math.max(90,Math.min(150,Number(n)||110));if(residentSlider)residentSlider.value=pedestrianAdmin.count;updateResidentVisibility();updateAdminLabels()}};
 updateAdminLabels();auditHQ();auditCityLayout();
-const clock=new THREE.Clock();let lastLayerRefresh=0,fallbackActive=false;canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();fallbackActive=true;drawFallbackMap(new Error('WebGL-контекст потерян'))});function animate(){requestAnimationFrame(animate);if(fallbackActive)return;try{const elapsed=clock.getElapsedTime();movePedestrians(elapsed);if(elapsed-lastLayerRefresh>1){applyLayer();lastLayerRefresh=elapsed}controls.update();renderer.render(scene,camera);const calls=renderer.info.render.calls;mapDiagnostics.lastRenderCalls=calls;mapDiagnostics.canvasWidth=canvas.width;mapDiagnostics.canvasHeight=canvas.height;mapDiagnostics.zeroDrawFrames=calls===0?mapDiagnostics.zeroDrawFrames+1:0;const health=evaluateMapRenderHealth({width:canvas.width,height:canvas.height,drawCalls:calls,zeroDrawFrames:mapDiagnostics.zeroDrawFrames});if(!health.healthy){fallbackActive=true;drawFallbackMap(new Error(health.reason))}}catch(error){fallbackActive=true;drawFallbackMap(error)}}animate();
+const clock=new THREE.Clock();let lastLayerRefresh=0,fallbackActive=false;canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();fallbackActive=true;drawFallbackMap(new Error('WebGL-контекст потерян'))});function animate(){requestAnimationFrame(animate);if(fallbackActive)return;try{const elapsed=clock.getElapsedTime();movePedestrians(elapsed);if(elapsed-lastLayerRefresh>1){applyLayer();lastLayerRefresh=elapsed}controls.update();renderer.render(scene,camera);const calls=renderer.info.render.calls;mapDiagnostics.lastRenderCalls=calls;mapDiagnostics.canvasWidth=canvas.clientWidth;mapDiagnostics.canvasHeight=canvas.clientHeight;mapDiagnostics.zeroDrawFrames=calls===0?mapDiagnostics.zeroDrawFrames+1:0;const health=evaluateMapRenderHealth({width:canvas.clientWidth,height:canvas.clientHeight,drawCalls:calls,zeroDrawFrames:mapDiagnostics.zeroDrawFrames});if(!health.healthy){fallbackActive=true;drawFallbackMap(new Error(health.reason))}}catch(error){fallbackActive=true;drawFallbackMap(error)}}animate();
 function toast(msg){const el=document.querySelector('#toast');el.textContent=msg;el.style.display='block';clearTimeout(el._timer);el._timer=setTimeout(()=>el.style.display='none',2100)}
 // Menu creation/opening is handled in index.html independently of WebGL.
 // Campaign, law proposals and calendar advancement are implemented in src/game.js.
