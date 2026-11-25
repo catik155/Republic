@@ -10,6 +10,7 @@ This document tracks the game direction requested by the player across earlier d
 
 ## City and residents
 - [x] Dark 3D city, 25 district polygons, connected streets, government landmark, party headquarters, parks.
+- [x] Detect lost WebGL context and a prolonged zero-draw render loop; expose map diagnostics and switch to 2D fallback when rendering is unhealthy.
 - [x] Densify building blocks; extend city floor/camera bounds.
 - [x] Residents have goal-directed street movement.
 - [ ] Basic residential lifecycle code exists (street destination → fade/inside → return), but door alignment and actual visible behavior still need browser verification.
