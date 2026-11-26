@@ -11,5 +11,5 @@ export function evaluateMapRenderHealth({width,height,drawCalls,zeroDrawFrames,c
 export function formatMapRenderFailure(reason=''){
  const message=String(reason??'').replace(/\s+/g,' ').trim();
  if(!message)return'Неизвестная ошибка';
- return message.length>120?message.slice(0,117)+'…':message;
+ return message.length>120?message.slice(0,119)+'…':message;
 }
