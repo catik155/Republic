@@ -7,3 +7,9 @@ export function evaluateMapRenderHealth({width,height,drawCalls,zeroDrawFrames,c
  if(drawCalls===0&&zeroDrawFrames>=MAP_EMPTY_RENDER_FRAME_LIMIT)return{healthy:false,reason:'3D-сцена не отрисовывает объекты в течение 90 кадров'};
  return{healthy:true,reason:''};
 }
+
+export function formatMapRenderFailure(reason=''){
+ const message=String(reason??'').replace(/\\s+/g,' ').trim();
+ if(!message)return'Неизвестная ошибка';
+ return message.length>120?message.slice(0,117)+'…':message;
+}
