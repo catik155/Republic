@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { seededValue, dailyStopCount } from './pedestrian-routines.js';
-import { evaluateMapRenderHealth } from './map-render-health.js';
+import { evaluateMapRenderHealth, formatMapRenderFailure } from './map-render-health.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const canvas=document.querySelector('#city3d');
@@ -8,7 +8,7 @@ const mapHost=canvas.parentElement;
 const mapDiagnostics={mode:'3d',fallbackReason:null,lastRenderCalls:0,zeroDrawFrames:0,canvasWidth:0,canvasHeight:0};
 window.RepublicMapDiagnostics=mapDiagnostics;
 function drawFallbackMap(error){
- if(window.__republicMapFallback)return; mapDiagnostics.mode='2d-fallback';mapDiagnostics.fallbackReason=error?.message||String(error||'Неизвестная ошибка');
+ if(window.__republicMapFallback)return; mapDiagnostics.mode='2d-fallback';mapDiagnostics.fallbackReason=formatMapRenderFailure(error?.message||error||'');
  window.__republicMapFallback=true;
  console.error('[Republic] 3D map unavailable; using 2D fallback.',error);
  const host=canvas.parentElement,overlay=document.createElement('canvas');
@@ -48,7 +48,7 @@ function drawFallbackMap(error){
   ctx.fillStyle='#e2eaf2';ctx.font='2.2px sans-serif';ctx.textAlign='center';ctx.fillText('ГОРОДСКАЯ АДМИНИСТРАЦИЯ',0,5.9);
   [['Развитие','#3e83e6',-20,-20],['Социал-демократы','#bd4f5c',20,-20],['Нац. союз','#c6a14b',20,20],['Зелёные','#8962bf',-20,20],['Гражданская','#6d8395',-20,0]].forEach(([name,color,x,z])=>{ctx.fillStyle=color;ctx.fillRect(x-1.15,z-1.15,2.3,2.3);ctx.strokeStyle='#d7e3ef';ctx.lineWidth=.22;ctx.strokeRect(x-1.15,z-1.15,2.3,2.3);ctx.fillStyle='#fff';ctx.font='1.8px sans-serif';ctx.textAlign='center';ctx.fillText('ШТАБ',x,z+3.2)});
   if(document.querySelector('#showPeople')?.checked!==false){const time=performance.now()/1000;for(let i=0;i<26;i++){const horizontal=i%2===0,road=roads[i%4],t=(time*.045+i*.037)%1,x=horizontal?-30+60*t:road,z=horizontal?road:-30+60*t;ctx.fillStyle=['#4a91ff','#d35a66','#d9b65c','#a681df','#86a0b9'][i%5];ctx.beginPath();ctx.arc(x,z,.34,0,Math.PI*2);ctx.fill()}}
-  ctx.restore();ctx.fillStyle='#dbe5ef';ctx.font='bold 13px Segoe UI,system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('Republic · резервная 2D-карта',14,24);ctx.fillStyle='#9aadc0';ctx.font='11px Segoe UI,system-ui,sans-serif';ctx.textAlign='right';ctx.fillText('3D недоступно · перетаскивание: обзор · колесо: масштаб',w-14,24);
+  ctx.restore();ctx.fillStyle='#dbe5ef';ctx.font='bold 13px Segoe UI,system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('Republic · резервная 2D-карта',14,24);ctx.fillStyle='#c4a99b';ctx.font='11px Segoe UI,system-ui,sans-serif';const diagnostic='Причина: '+mapDiagnostics.fallbackReason,maxLineWidth=Math.max(120,w-28),reasonLines=[];let reasonLine='';diagnostic.split(' ').forEach(word=>{const candidate=reasonLine?reasonLine+' '+word:word;if(ctx.measureText(candidate).width>maxLineWidth&&reasonLine){reasonLines.push(reasonLine);reasonLine=word}else reasonLine=candidate});if(reasonLine)reasonLines.push(reasonLine);reasonLines.slice(0,3).forEach((line,i)=>ctx.fillText(line,14,42+i*14));ctx.fillStyle='#9aadc0';ctx.font='11px Segoe UI,system-ui,sans-serif';ctx.textAlign='right';ctx.fillText('3D недоступно · перетаскивание: обзор · колесо: масштаб',w-14,24);
   requestAnimationFrame(renderFallback)
  }
  overlay.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;overlay.setPointerCapture?.(e.pointerId);overlay.style.cursor='grabbing'});
