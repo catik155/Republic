@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { seededValue, dailyStopCount } from './pedestrian-routines.js';
 import { evaluateMapRenderHealth, formatMapRenderFailure } from './map-render-health.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { resolveMapCanvasSize } from './map-canvas-size.js';
 
 const canvas=document.querySelector('#city3d');
 const mapHost=canvas.parentElement;
@@ -63,8 +64,8 @@ function drawFallbackMap(error){
 }
 
 try{
-const initialWidth=Math.max(1,canvas.clientWidth||mapHost.clientWidth||window.innerWidth);
-const initialHeight=Math.max(1,canvas.clientHeight||mapHost.clientHeight||window.innerHeight-60);
+const initialSize=resolveMapCanvasSize({hostWidth:canvas.clientWidth||mapHost.clientWidth,hostHeight:canvas.clientHeight||mapHost.clientHeight,windowWidth:window.innerWidth,windowHeight:window.innerHeight,mobile:window.innerWidth<=650});
+const initialWidth=initialSize.width,initialHeight=initialSize.height;
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});
 renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
 renderer.setSize(initialWidth,initialHeight,false);
@@ -466,8 +467,8 @@ document.querySelector('#resetCamera').onclick=()=>{camera.position.set(54,66,68
 function fitCanvas(){
  const host=canvas.parentElement;
  const r=host.getBoundingClientRect();
- const w=Math.max(1,Math.round(r.width||host.clientWidth||window.innerWidth));
- const h=Math.max(window.innerWidth<=650?320:240,Math.round(r.height||host.clientHeight||window.innerHeight-60));
+ const size=resolveMapCanvasSize({hostWidth:r.width||host.clientWidth,hostHeight:r.height||host.clientHeight,windowWidth:window.innerWidth,windowHeight:window.innerHeight,mobile:window.innerWidth<=650});
+ const {width:w,height:h}=size;
  if(canvas.width!==Math.round(w*renderer.getPixelRatio())||canvas.height!==Math.round(h*renderer.getPixelRatio())||camera.aspect!==w/h){
   renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
  }
